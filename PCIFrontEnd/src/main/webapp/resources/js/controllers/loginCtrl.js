@@ -56,7 +56,7 @@ demo.controller('loginCtrl', ['$scope','LoginFactory','$location','localStorageS
 		
 		// alert($scope.user.name + ' ' +  $scope.user.password );			
 		 //$window.location.href='page-main.html';
-		 var source = '/KPIFrontEnd-1.0.0';
+		 var source = '/KPIFrontEnd';
 		 var action	= '/login';
 		 
 		 $scope.request = {};	
@@ -75,7 +75,7 @@ demo.controller('loginCtrl', ['$scope','LoginFactory','$location','localStorageS
 				 var form = document.createElement("form");
 			     form.id = "gpsForm";
 			     form.method = "POST";// /GPSFront-1.0.0
-			     form.action = "/KPIFrontEnd-1.0.0/page-main.html";			   
+			     form.action = "/KPIFrontEnd/page-main.html";			   
 			     var input = document.createElement('input');
 			     input.type = 'hidden';
 			     input.name = 'Bearer';
