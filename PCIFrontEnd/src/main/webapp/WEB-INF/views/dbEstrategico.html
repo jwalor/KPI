@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+	<title>INDICADORES ARKIN</title>
+	
+	<!--=== CSS ===-->
+
+	<!-- Bootstrap -->
+	<link href="bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+
+	<!-- Theme -->
+	<link href="assets/css/main.css" rel="stylesheet" type="text/css" />
+	<link href="assets/css/plugins.css" rel="stylesheet" type="text/css" />
+	<link href="assets/css/responsive.css" rel="stylesheet" type="text/css" />
+	<link href="assets/css/icons.css" rel="stylesheet" type="text/css" />
+
+	<!-- Home -->
+
+	<link rel="stylesheet" href="assets/css/fontawesome/font-awesome.min.css">
+	<!--[if IE 7]>
+		<link rel="stylesheet" href="assets/css/fontawesome/font-awesome-ie7.min.css">
+	<![endif]-->
+
+	<!--[if IE 8]>
+		<link href="assets/css/ie8.css" rel="stylesheet" type="text/css" />
+	<![endif]-->
+	<link href='http://fonts.googleapis.com/css?family=Open+Sans:400,600,700' rel='stylesheet' type='text/css'>
+
+	<!--=== JavaScript ===-->
+
+	<script type="text/javascript" src="assets/js/libs/jquery-1.10.2.min.js"></script>
+
+	<script type="text/javascript" src="bootstrap/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="assets/js/libs/lodash.compat.min.js"></script>
+
+	<!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+	<!--[if lt IE 9]>
+		<script src="assets/js/libs/html5shiv.js"></script>
+	<![endif]-->
+	<script>
+	
+	$( document ).ready(function() {
+		$("#idDetailsBox").hide();
+	});
+	
+	function showBox(){
+		$("#idDetailsBox").show();
+	}
+	
+	</script>
+</head>
+
+<body>
+
+<header class="header navbar navbar-fixed-top" role="banner">
+	<!-- Top Navigation Bar -->
+	<div class="container">
+
+		<!-- Logo -->
+		<div class="nav navbar-nav navbar-left">
+			<a class="navbar-brand">
+				<strong>ARKIN BI</strong>
+			</a>
+		</div>
+		<!--
+		<a class="navbar-brand" href="index.html">
+			<strong>ARKIN BI</strong>
+		</a>
+		-->
+		<!-- /logo -->
+
+		<!-- Top Right Menu -->
+		<ul class="nav navbar-nav navbar-right">
+			<!-- Notifications -->
+			<li class="dropdown">
+				<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+					<i class="icon-warning-sign"></i>
+					<span class="badge">1</span>
+				</a>
+				<ul class="dropdown-menu extended notification">
+					<li class="footer">
+						<a href="javascript:void(0);">Ver todos los mensajes</a>
+					</li>
+				</ul>
+			</li>
+
+			<!-- Messages -->
+			<li class="dropdown"><!-- hidden-xs hidden-sm-->
+				<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+					<i class="icon-envelope"></i>
+					<span class="badge">1</span>
+				</a>
+				<ul class="dropdown-menu extended notification">
+					<li class="footer">
+						<a href="javascript:void(0);">Ver todos los mensajes</a>
+					</li>
+				</ul>
+			</li>
+
+
+			<!-- User Login Dropdown -->
+			<li class="dropdown user">
+				<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+					<!--<img alt="" src="assets/img/avatar1_small.jpg" />-->
+					<i class="icon-male"></i>
+					<span class="username">John Doe</span>
+					<i class="icon-caret-down small"></i>
+				</a>
+				<ul class="dropdown-menu">
+					<li><a href="login.html"><i class="icon-key"></i> Log Out</a></li>
+				</ul>
+			</li>
+			<!-- /user login dropdown -->
+		</ul>
+		<!-- /Top Right Menu -->
+	</div>
+	<!-- /top navigation bar -->
+</header>	
+
+
+
+<div id="container" class="fixed-header">
+	
+	<div class="content">		
+	<!-- Breadcrumbs line -->
+	<div class="crumbs outMenu">
+		<ul id="breadcrumbs" class="breadcrumb">
+			<li>
+				<i class="icon-home"></i>
+				<a>Dashboard</a>
+			</li>
+			<li class="current">
+				<a href="home.html" title="">Home</a>
+			</li>
+			<li class="current">
+				<a href="#" title="">Dashboard Estrategico</a>
+			</li>
+		</ul>
+	</div>
+	
+	<!-- /Breadcrumbs line -->
+
+	<div class="col-md-12">
+	
+		<div class="col-md-12">
+		<div>
+			<h3>Dashboard Estrategico</h3>
+		</div>
+		</div>
+		
+		<div class="widget-content">
+		
+		<div class="col-md-6">
+			<div class="widget box">
+			
+				<div class="widget-header">
+					<i class="icon-money"></i> <h4>LIQUIDACIONES Y COMPENSACION</h4>
+				</div>
+				
+				<div class="widget-content">
+				
+					<div class="col-md-4 h50px">
+						<div class="statbox widget">
+						<div class="statbox visual red">CRITICAL</div>
+						</div>
+					</div>
+					
+					<div class="col-md-8">
+						<ul class="feeds clearfix">
+							<li>
+								<div class="col1">
+									<div class="content">
+										<div class="content-col1">
+											<div class="label label-success"><i class="icon-plus"></i></div>
+										</div>
+										<div class="content-col2">
+											<div class="desc">UP - 4 Incidencias</div>
+										</div>
+									</div>
+								</div>
+							</li>
+							<li>
+								<div class="col1">
+									<div class="content">
+										<div class="content-col1">
+											<div class="label label-warning"><i class="icon-warning-sign"></i></div>
+										</div>
+										<div class="content-col2">
+											<div class="desc">WARNING - 3 Incidencias</div>
+										</div>
+									</div>
+								</div>
+							</li>
+							<li>
+								<div class="col1">
+									<div class="content">
+										<div class="content-col1"><!--icon-exclamation-circle-->
+											<div class="label label-danger"><i class="icon-exclamation"></i></div>
+										</div>
+										<div class="content-col2">
+											<div class="desc">CRITICAL - 6 Incidencias</div>
+										</div>
+									</div>
+								</div>
+							</li>
+						</ul>
+					</div>
+				
+					<a class="more" href="javascript:showBox()">VER DETALLE</a>
+				
+				</div>
+				
+			</div>
+		</div>
+		
+		
+		<div class="col-md-6">
+			<div class="widget box">
+			
+				<div class="widget-header">
+					<i class="icon-suitcase"></i> <h4>PROCESOS CORPORATIVOS</h4>
+				</div>
+				
+				<div class="widget-content">
+				
+					<div class="col-md-4 h50px">
+						<div class="statbox widget">
+						<div class="statbox visual yellow">WARNING</div>
+						</div>
+					</div>
+					
+					<div class="col-md-8">
+						<ul class="feeds clearfix">
+							<li>
+								<div class="col1">
+									<div class="content">
+										<div class="content-col1">
+											<div class="label label-success"><i class="icon-plus"></i></div>
+										</div>
+										<div class="content-col2">
+											<div class="desc">UP - 4 Incidencias</div>
+										</div>
+									</div>
+								</div>
+							</li>
+							<li>
+								<div class="col1">
+									<div class="content">
+										<div class="content-col1">
+											<div class="label label-warning"><i class="icon-warning-sign"></i></div>
+										</div>
+										<div class="content-col2">
+											<div class="desc">WARNING - 3 Incidencias</div>
+										</div>
+									</div>
+								</div>
+							</li>
+							<li>
+								<div class="col1">
+									<div class="content">
+										<div class="content-col1"><!--icon-exclamation-circle-->
+											<div class="label label-danger"><i class="icon-exclamation"></i></div>
+										</div>
+										<div class="content-col2">
+											<div class="desc">CRITICAL - 6 Incidencias</div>
+										</div>
+									</div>
+								</div>
+							</li>
+						</ul>
+					</div>
+				
+					<a class="more" href="javascript:showBox()">VER DETALLE</a>
+				
+				</div>
+				
+			</div>
+		</div>
+		
+		
+		<div class="col-md-6">
+			<div class="widget box">
+			
+				<div class="widget-header">
+					<i class="icon-credit-card"></i> <h4>FACTURACION</h4>
+				</div>
+				
+				<div class="widget-content">
+				
+					<div class="col-md-4 h50px">
+						<div class="statbox widget">
+						<div class="statbox visual green">UP</div>
+						</div>
+					</div>
+					
+					<div class="col-md-8">
+						<ul class="feeds clearfix">
+							<li>
+								<div class="col1">
+									<div class="content">
+										<div class="content-col1">
+											<div class="label label-success"><i class="icon-plus"></i></div>
+										</div>
+										<div class="content-col2">
+											<div class="desc">UP - 4 Incidencias</div>
+										</div>
+									</div>
+								</div>
+							</li>
+							<li>
+								<div class="col1">
+									<div class="content">
+										<div class="content-col1">
+											<div class="label label-warning"><i class="icon-warning-sign"></i></div>
+										</div>
+										<div class="content-col2">
+											<div class="desc">WARNING - 3 Incidencias</div>
+										</div>
+									</div>
+								</div>
+							</li>
+							<li>
+								<div class="col1">
+									<div class="content">
+										<div class="content-col1"><!--icon-exclamation-circle-->
+											<div class="label label-danger"><i class="icon-exclamation"></i></div>
+										</div>
+										<div class="content-col2">
+											<div class="desc">CRITICAL - 6 Incidencias</div>
+										</div>
+									</div>
+								</div>
+							</li>
+						</ul>
+					</div>
+				
+					<a class="more" href="javascript:showBox()">VER DETALLE</a>
+				
+				</div>
+				
+			</div>
+		</div>
+		
+		<div class="col-md-6">
+			<div class="widget box">
+			
+				<div class="widget-header">
+					<i class="icon-certificate"></i> <h4>DISPONIBILIDAD</h4>
+				</div>
+				
+				<div class="widget-content">
+				
+					<div class="col-md-4 h50px">
+						<div class="statbox widget">
+						<div class="statbox visual yellow">WARNING</div>
+						</div>
+					</div>
+					
+					<div class="col-md-8">
+						<ul class="feeds clearfix">
+							<li>
+								<div class="col1">
+									<div class="content">
+										<div class="content-col1">
+											<div class="label label-success"><i class="icon-plus"></i></div>
+										</div>
+										<div class="content-col2">
+											<div class="desc">UP - 4 Incidencias</div>
+										</div>
+									</div>
+								</div>
+							</li>
+							<li>
+								<div class="col1">
+									<div class="content">
+										<div class="content-col1">
+											<div class="label label-warning"><i class="icon-warning-sign"></i></div>
+										</div>
+										<div class="content-col2">
+											<div class="desc">WARNING - 3 Incidencias</div>
+										</div>
+									</div>
+								</div>
+							</li>
+							<li>
+								<div class="col1">
+									<div class="content">
+										<div class="content-col1"><!--icon-exclamation-circle-->
+											<div class="label label-danger"><i class="icon-exclamation"></i></div>
+										</div>
+										<div class="content-col2">
+											<div class="desc">CRITICAL - 6 Incidencias</div>
+										</div>
+									</div>
+								</div>
+							</li>
+						</ul>
+					</div>
+				
+					<a class="more" href="javascript:showBox()">VER DETALLE</a>
+				
+				</div>
+				
+			</div>
+		</div>
+		
+		<div id="idDetailsBox" class="col-md-12">
+			<div class="widget box">
+			
+				<div class="widget-header">
+					<i class="icon-certificate"></i> <h4>DETALLE LIQUIDACION Y COMPENSACION</h4>
+				</div>
+				
+				<div class="widget-content">
+				
+					<ul class="feeds clearfix">
+						<li>
+							<div class="col1">
+								<div class="content">
+									<div class="content-col1">
+										<div class="label label-success"><i class="icon-plus"></i></div>
+									</div>
+									<div class="content-col2">
+										<div class="desc">Liquidacion de Rueda y deuda - Proceso Correcto</div>
+									</div>
+								</div>
+							</div>
+						</li>
+						<li>
+							<div class="col1">
+								<div class="content">
+									<div class="content-col1">
+										<div class="label label-success"><i class="icon-plus"></i></div>
+									</div>
+									<div class="content-col2">
+										<div class="desc">Liquidacion de Reporte y RRFF - Proceso Correcto</div>
+									</div>
+								</div>
+							</div>
+						</li>
+						<li>
+							<div class="col1">
+								<div class="content">
+									<div class="content-col1">
+										<div class="label label-success"><i class="icon-plus"></i></div>
+									</div>
+									<div class="content-col2">
+										<div class="desc">Liquidacion de DVP Primario - Proceso Correcto</div>
+									</div>
+								</div>
+							</div>
+						</li>
+						<li>
+							<div class="col1">
+								<div class="content">
+									<div class="content-col1">
+										<div class="label label-success"><i class="icon-plus"></i></div>
+									</div>
+									<div class="content-col2">
+										<div class="desc">Liquidacion de DVP Secundario- Proceso Correcto</div>
+									</div>
+								</div>
+							</div>
+						</li>
+						
+						
+						<li>
+							<div class="col1">
+								<div class="content">
+									<div class="content-col1">
+										<div class="label label-warning"><i class="icon-warning-sign"></i></div>
+									</div>
+									<div class="content-col2">
+										<div class="desc">Liquidacion de Prestamo de Valores - operaciones no conclusas</div>
+									</div>
+								</div>
+							</div>
+						</li>
+						<li>
+							<div class="col1">
+								<div class="content">
+									<div class="content-col1">
+										<div class="label label-warning"><i class="icon-warning-sign"></i></div>
+									</div>
+									<div class="content-col2">
+										<div class="desc">Reposiciones de garantia - operaciones no conclusas</div>
+									</div>
+								</div>
+							</div>
+						</li>
+						<li>
+							<div class="col1">
+								<div class="content">
+									<div class="content-col1">
+										<div class="label label-warning"><i class="icon-warning-sign"></i></div>
+									</div>
+									<div class="content-col2">
+										<div class="desc">Incumplimientos - operaciones no conclusas</div>
+									</div>
+								</div>
+							</div>
+						</li>
+						
+						
+						<li>
+							<div class="col1">
+								<div class="content">
+									<div class="content-col1">
+										<div class="label label-danger"><i class="icon-exclamation"></i></div>
+									</div>
+									<div class="content-col2">
+										<div class="desc">Liquidacion extrabursatil - operaciones con errores</div>
+									</div>
+								</div>
+							</div>
+						</li>
+						<li>
+							<div class="col1">
+								<div class="content">
+									<div class="content-col1">
+										<div class="label label-danger"><i class="icon-exclamation"></i></div>
+									</div>
+									<div class="content-col2">
+										<div class="desc">Liquidacion de ventas internacionales - operaciones con errores</div>
+									</div>
+								</div>
+							</div>
+						</li>
+						<li>
+							<div class="col1">
+								<div class="content">
+									<div class="content-col1">
+										<div class="label label-danger"><i class="icon-exclamation"></i></div>
+									</div>
+									<div class="content-col2">
+										<div class="desc">Liquidacion de compra internacionales - operaciones con errores</div>
+									</div>
+								</div>
+							</div>
+						</li>
+						
+					</ul>
+				</div>
+			</div>
+			
+		</div>
+	
+	</div>
+
+	</div>
+	
+</div>
+	
+	
+</body>
+</html>

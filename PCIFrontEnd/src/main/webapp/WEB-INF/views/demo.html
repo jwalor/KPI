@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+	<title>INDICADORES ARKIN</title>
+	
+	<!--=== CSS ===-->
+
+	<!-- Bootstrap -->
+	<link href="bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+
+	<!-- Theme -->
+	<link href="assets/css/main.css" rel="stylesheet" type="text/css" />
+	<link href="assets/css/plugins.css" rel="stylesheet" type="text/css" />
+	<link href="assets/css/responsive.css" rel="stylesheet" type="text/css" />
+	<link href="assets/css/icons.css" rel="stylesheet" type="text/css" />
+
+	<!-- Home -->
+
+	<link rel="stylesheet" href="assets/css/fontawesome/font-awesome.min.css">
+	<!--[if IE 7]>
+		<link rel="stylesheet" href="assets/css/fontawesome/font-awesome-ie7.min.css">
+	<![endif]-->
+
+	<!--[if IE 8]>
+		<link href="assets/css/ie8.css" rel="stylesheet" type="text/css" />
+	<![endif]-->
+	<link href='http://fonts.googleapis.com/css?family=Open+Sans:400,600,700' rel='stylesheet' type='text/css'>
+
+	<!--=== JavaScript ===-->
+
+	<script type="text/javascript" src="assets/js/libs/jquery-1.10.2.min.js"></script>
+
+	<script type="text/javascript" src="bootstrap/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="assets/js/libs/lodash.compat.min.js"></script>
+
+	<!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+	<!--[if lt IE 9]>
+		<script src="assets/js/libs/html5shiv.js"></script>
+	<![endif]-->
+
+	<!-- ccc charts -->
+	<script type="text/javascript" src="assets/ccc/jquery.tipsy.js"></script>
+	<script type="text/javascript" src="assets/ccc/protovis.js"></script>
+	<script type="text/javascript" src="assets/ccc/protovis-msie.js"></script>
+	<script type="text/javascript" src="assets/ccc/tipsy.js"></script>
+	<script type="text/javascript" src="assets/ccc/def.js"></script>
+	<script type="text/javascript" src="assets/ccc/pvc-r2.0.js"></script>
+	<link href='assets/ccc/tipsy.css' rel='stylesheet' type='text/css'>
+	<script type="text/javascript" src="assets/ccc/templateCharts.js"></script>
+	<script type="text/javascript" src="assets/ccc/templateWidgets.js"></script>
+	<script type="text/javascript" src="assets/ccc/templateComponents.js"></script>
+	<script type="text/javascript" src="assets/ccc/templateJson.js"></script>
+	
+	<script type="text/javascript" src="assets/drawtable/footable.js"></script>
+	<script type="text/javascript" src="assets/drawtable/generateTables.js"></script>
+	
+	<script>
+		
+	
+	$( document ).ready(function() {
+	
+		createWidgetPanelMenun(widgetJsonMenu);
+		createWidgetTitlePage(widgetJsonTitulo);
+		
+		/*widgets*/
+		createWidgetBase(jsonDataIdWFiltros);
+		
+		createWidgetBase(jsonDataIdWContResumen);
+		createWidgetBase(jsonDataIdWContResumenList);
+		createWidgetBase(jsonDataIdWContPieComparatives);
+		createWidgetBase(jsonDataIdWContBarComparatives);
+		createWidgetBase(jsonDataIdWContLineEvolution);
+		
+		createWidgetBase(jsonDataIdWContBarVerticalComparatives);
+		createWidgetBase(jsonDataIdWContDonutComparative);
+		
+		
+		/*charts*/
+		createResumen(widgetJsonResumen);
+		createListTable("idWContResumenList",resultset_list_table);
+		
+		var vwidth = $("#idWContPieComparativesBase").width();
+		var vheight = 300;
+		var data = JSON.parse('{"canvas": "idWContPieComparatives","width": "'+vwidth+'","height": "'+vheight+'"}');
+		var varBarchar = createChartPie(data);
+		varBarchar.setData(resultset_metadata_pieComparatives, { crosstabMode: false }).render();
+		
+		var vwidth = $("#idWContBarComparativesBase").width();
+		var vheight = 300;
+		var data2 = JSON.parse('{"canvas": "idWContBarComparatives","width": "'+vwidth+'","height": "'+vheight+'"}');
+		var varBarchar = createChartHorizontalGroupBar(data2);
+		varBarchar.setData(resultset_metadata_barComparative, { crosstabMode: false }).render();
+		
+		var vwidth = $("#idWContLineEvolutionBase").width();
+		var vheight = 300;
+		var data2 = JSON.parse('{"canvas": "idWContLineEvolution","width": "'+vwidth+'","height": "'+vheight+'"}');
+		var varLinechar = createChartLine(data2);
+		varLinechar.setData(resultset_metadata_lineEvolution, { crosstabMode: false }).render();
+		
+		
+		var vwidth = $("#idWContBarVerticalComparativesBase").width();
+		var vheight = 300;
+		var data2 = JSON.parse('{"canvas": "idWContBarVerticalComparatives","width": "'+vwidth+'","height": "'+vheight+'"}');
+		var varBarchar = createChartBar(data2);
+		varBarchar.setData(resultset_metadata_barComparative, { crosstabMode: false }).render();
+		
+		var vwidth = $("#idWContDonutComparativeBase").width();
+		var vheight = 300;
+		var data = JSON.parse('{"canvas": "idWContDonutComparative","width": "'+vwidth+'","height": "'+vheight+'"}');
+		var varBarchar = createChartDonut(data);
+		varBarchar.setData(resultset_metadata_pieComparatives, { crosstabMode: false }).render();
+		
+		
+		
+		createSelect(widgetJsonCombo1);
+		createSelect(widgetJsonCombo2);
+		
+		
+		$("#idWContResumenCombo1").change(function() {
+			var value = $(this).find("option:selected").val();
+			$("#idHiddenWContResumenCombo1").val(value);
+			cambiar();
+			//$("#idHiddenWContResumenCombo1").val(value).trigger('change');
+		});
+		/*
+		$("#idHiddenWContResumenCombo1").change(function() {
+			var value = $("#idHiddenWContResumenCombo1").val();
+			
+			var vwidth = $("#idWContPieComparativesBase").width();
+			var vheight = 300;
+			var data = JSON.parse('{"canvas": "idWContPieComparatives","width": "'+vwidth+'","height": "'+vheight+'"}');
+			var varBarchar = createChartPie(data);
+			varBarchar.setData(resultset_metadata_pieComparatives2, { crosstabMode: false }).render();
+			
+			createListTable("idWContResumenList",resultset_list_table2);
+			
+		});
+		*/
+	});
+	
+	function cambiar(){
+		var value = $("#idHiddenWContResumenCombo1").val();
+		
+		//alert("funcion: "+value);		
+		
+		var vwidth = $("#idWContPieComparativesBase").width();
+		var vheight = 300;
+		var data = JSON.parse('{"canvas": "idWContPieComparatives","width": "'+vwidth+'","height": "'+vheight+'"}');
+		var varBarchar = createChartPie(data);
+		varBarchar.setData(resultset_metadata_pieComparatives2, { crosstabMode: false }).render();
+		
+		createListTable("idWContResumenList",resultset_list_table2);
+	
+	}
+		
+	$(window).resize(function() {
+	
+		/*charts*/
+		createResumen(widgetJsonResumen);
+		createListTable("idWContResumenList",resultset_list_table);
+		
+		var vwidth = $("#idWContPieComparativesBase").width();
+		var vheight = 300;
+		var data = JSON.parse('{"canvas": "idWContPieComparatives","width": "'+vwidth+'","height": "'+vheight+'"}');
+		var varBarchar = createChartPie(data);
+		varBarchar.setData(resultset_metadata_pieComparatives, { crosstabMode: false }).render();
+		
+		var vwidth = $("#idWContBarComparativesBase").width();
+		var vheight = 300;
+		var data2 = JSON.parse('{"canvas": "idWContBarComparatives","width": "'+vwidth+'","height": "'+vheight+'"}');
+		var varBarchar = createChartHorizontalGroupBar(data2);
+		varBarchar.setData(resultset_metadata_barComparative, { crosstabMode: false }).render();
+		
+		
+		var vwidth = $("#idWContLineEvolutionBase").width();
+		var vheight = 300;
+		var data2 = JSON.parse('{"canvas": "idWContLineEvolution","width": "'+vwidth+'","height": "'+vheight+'"}');
+		var varLinechar = createChartLine(data2);
+		varLinechar.setData(resultset_metadata_lineEvolution, { crosstabMode: false }).render();
+		
+		
+	});
+	
+	</script>
+	
+</head>
+
+<body>
+
+<header class="header navbar navbar-fixed-top" role="banner">
+	<!-- Top Navigation Bar -->
+	<div class="container">
+
+		<!-- Logo -->
+		<div class="nav navbar-nav navbar-left">
+			<a class="navbar-brand">
+				<strong>ARKIN BI</strong>
+			</a>
+		</div>
+		<!--
+		<a class="navbar-brand" href="index.html">
+			<strong>ARKIN BI</strong>
+		</a>
+		-->
+		<!-- /logo -->
+
+		<!-- Top Right Menu -->
+		<ul class="nav navbar-nav navbar-right">
+			<!-- Notifications -->
+			<li class="dropdown">
+				<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+					<i class="icon-warning-sign"></i>
+					<span class="badge">1</span>
+				</a>
+				<ul class="dropdown-menu extended notification">
+					<li class="footer">
+						<a href="javascript:void(0);">Ver todos los mensajes</a>
+					</li>
+				</ul>
+			</li>
+
+			<!-- Messages -->
+			<li class="dropdown"><!-- hidden-xs hidden-sm-->
+				<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+					<i class="icon-envelope"></i>
+					<span class="badge">1</span>
+				</a>
+				<ul class="dropdown-menu extended notification">
+					<li class="footer">
+						<a href="javascript:void(0);">Ver todos los mensajes</a>
+					</li>
+				</ul>
+			</li>
+
+
+			<!-- User Login Dropdown -->
+			<li class="dropdown user">
+				<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+					<!--<img alt="" src="assets/img/avatar1_small.jpg" />-->
+					<i class="icon-male"></i>
+					<span class="username">John Doe</span>
+					<i class="icon-caret-down small"></i>
+				</a>
+				<ul class="dropdown-menu">
+					<li><a href="login.html"><i class="icon-key"></i> Log Out</a></li>
+				</ul>
+			</li>
+			<!-- /user login dropdown -->
+		</ul>
+		<!-- /Top Right Menu -->
+	</div>
+	<!-- /top navigation bar -->
+</header>	
+
+<input type="hidden" value="" id="idHiddenWContResumenCombo1" />
+
+<div id="container" class="fixed-header">
+	
+	<div id="contentPage" class="content">	
+
+	
+	</div>
+	
+
+</div>	
+	
+</body>
+</html>
