@@ -1,0 +1,58 @@
+
+# j@lor
+# setting about topologies for kpis project.
+---
+
+# topology definition
+# name to be used when submitting
+name: "settlement-topology"
+
+# topology configuration
+# this will be passed to the submitter as a map of config options
+#
+config:
+  topology.workers: 1
+  topology.debug: true
+  DRIVER_SOURCE: oracle.jdbc.pool.OracleDataSource
+  URL_SOURCE: jdbc:oracle:thin:@52.39.34.204:1521:xe
+  USER_SOURCE: CSDCORE_BVL
+  PASSWORD_SOURCE: CSDCORE_BVL
+  
+  DRIVER_TARGET: oorg.postgresql.ds.PGSimpleDataSource
+  URL_TARGET: jdbc:postgresql://localhost:5432/postgres
+  USER_TARGET: postgres
+  PASSWORD_TARGET: admin
+  
+# spout definitions
+spouts:
+  - id: "spout-1"
+    className: "org.apache.storm.kafka.spout.TestWordSpout"
+    parallelism: 1
+
+# bolt definitions
+bolts:
+  - id: "A"
+    className: "org.apache.storm.kafka.bolt.LogInfoBolt"
+    parallelism: 1
+
+  - id: "B"
+    className: "org.apache.storm.kafka.bolt.LogInfoBolt"
+    parallelism: 1
+
+#stream definitions
+# stream definitions define connections between spouts and bolts.
+# note that such connections can be cyclical
+streams:
+  - name: "spout-1 --> bolt-1" # name isn't used (placeholder for logging, UI, etc.)
+#    id: "connection-1"
+    from: "spout-1"
+    to: "A"
+    grouping:
+      type: FIELDS
+      args: ["word"]
+
+  
+
+
+
+

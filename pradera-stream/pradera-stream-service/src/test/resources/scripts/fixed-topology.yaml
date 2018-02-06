@@ -1,0 +1,20 @@
+
+# j@lor
+# setting about topologies for kpis project.
+---
+
+name: "settlementTopology"
+config:
+  topology.workers: 1
+  topology.debug: true
+  USER: root
+  PASSWORD: admin
+  DB: storm_config
+  HOST: localhost
+  PORT: 27017
+topologySource:
+  className: "org.apache.storm.topologies.FixedKpiTopologyTest"
+ # constructorArgs:
+ #   - "foo"
+ #   - "bar"
+

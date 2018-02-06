@@ -1,0 +1,1 @@
+select * from kpi_stream.settlement where ID_HOLDER_ACCOUNT_OPERATION_PK = :ID_HOLDER_ACCOUNT_OPERATION_PK AND STATE = 1

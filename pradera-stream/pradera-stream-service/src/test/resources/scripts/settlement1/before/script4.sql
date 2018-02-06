@@ -1,0 +1,1 @@
+create sequence settlement_id_seq  INCREMENT by 1 

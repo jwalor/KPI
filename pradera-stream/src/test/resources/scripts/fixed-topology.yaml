@@ -1,0 +1,24 @@
+
+# j@lor
+# setting about topologies for kpis project.
+
+
+name: "settlement1Topology"
+config:
+  topology.workers: 1
+  topology.debug: false
+  topology.message.timeout.secs: 60
+#  USER: root
+#  PASSWORD: admin
+  USER:
+  PASSWORD:
+  DB: storm_config
+  HOST: localhost
+  PORT: 27017
+  name: "settlement1Topology"
+topologySource:
+  className: "org.apache.storm.topologies.FixedKpiTopologyTest"
+
+#  - "foo"
+#  - "bar"
+

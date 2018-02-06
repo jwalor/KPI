@@ -1,0 +1,1 @@
+select DISTINCT   decode(category,null,'',category)  from MUCQM_BATCH.QSI_VALUE_SET where concept='${concept}'
