@@ -57,6 +57,8 @@ public class KpiSpout implements IRichSpout ,  Serializable {
     private 	Map<String, Object>		spoutConfig;
     public 		ConnectionProvider 		connectionProvider;
     private		Long					_sleepTime;
+    private		String					_streamId;
+    
         
     public KpiSpout(Map<String, Object>	spoutConfig ) {
     	this(true);
