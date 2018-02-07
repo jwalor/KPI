@@ -139,7 +139,7 @@ public class FixedKpiTopologyTest  implements TopologySource {
 			 	            try {
 			 	            	jdbcClient.executeSql((String) sql);
 			 				} catch (Exception e) {
-			 					LOG.error(" ERROR MANAGMENT  :::: " + e.getMessage());
+			 					LOG.error(" ERROR MANAGMENT  :::: " + e.getCause());
 			 					return null; 
 			 				}
 			           }
