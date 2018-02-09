@@ -158,6 +158,7 @@ public class UpsertKpiBolt extends JdbcInsertBolt {
 			 * Adding columns generics.Don't move thats columns which are used in query for
 			 * logic and options of work with last record.
 			 */
+			
 			List<Column> columns = kpiJdbcLookupMapper.getColumns(tupleNative);
 
 			columns.add(new CustomColumn("REGISTER_DATE", DateUtil.getSystemTimestamp(), Types.TIMESTAMP));
