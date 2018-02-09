@@ -38,6 +38,8 @@ public class Constant {
 		public static final String SCRIPT 			    = "script";
 		public static final String EXECUTIONS 			= "executions";
 		public static final String PROCESSES 			= "process";
+		public static final String SPOUTS 				= "spouts";
+		public static final String BOLTS 				= "bolts";
 		public static final String INITIALIZE_SCRIPT 	= "initializeScript";
 		public static final String PROCESS_EXECUTING 	= "processExecuting";
 		public static final String COMMUNICATIONS 		= "communications";

@@ -11,6 +11,7 @@ import org.apache.commons.lang3.Validate;
 import org.apache.storm.Config;
 import org.apache.storm.jdbc.common.Column;
 import org.apache.storm.jdbc.common.ConnectionProvider;
+import org.apache.storm.jdbc.common.HikariCPConnectionProvider;
 import org.apache.storm.jdbc.mapper.JdbcLookupMapper;
 import org.apache.storm.jdbc.mapper.KpiJdbcLookupMapper;
 import org.apache.storm.mongodb.common.MongoDBClient;
@@ -53,9 +54,10 @@ public class KpiComparatorBolt extends JdbcLookupBolt{
     public static final String NATIVE_STREAM = "NATIVE_STREAM";
     public static final String LOGIC_STREAM = "LOGIC_STREAM";
     private String name; 
+    
    
-    public KpiComparatorBolt(String selectQuery, KpiJdbcLookupMapper jdbcLookupMapper ) {
-		super(HikariCPConnectionSingletonTarget.getInstance(), selectQuery, jdbcLookupMapper);
+    public KpiComparatorBolt(HikariCPConnectionProvider hikariCPConnectionProvider ,String selectQuery, KpiJdbcLookupMapper jdbcLookupMapper ) {
+		super(hikariCPConnectionProvider, selectQuery, jdbcLookupMapper);
 		setJdbcLookupMapper(jdbcLookupMapper);
 	}
     

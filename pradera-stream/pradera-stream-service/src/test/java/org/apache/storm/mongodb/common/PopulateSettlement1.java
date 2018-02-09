@@ -91,7 +91,7 @@ public class PopulateSettlement1 extends PopulateCollection {
 			spouts = new ArrayList<DBRef>();
 		}
 		spouts.add(new DBRef("spout", (ObjectId) documentSpout.get("_id")));
-		_topology.put("bolts", spouts);
+		_topology.put("spouts", spouts);
 		
 		mongoDBClient.update(filter, _topology, true, false);
 	}
@@ -190,6 +190,7 @@ public class PopulateSettlement1 extends PopulateCollection {
 		updateProcess.put("settlementStream", updateExecutors);
 		Document documentUpdate = new Document(updateProcess);
 		mongoDBClient.insert(documentUpdate , "bolt");
+		
 		////////////////////////////////////////////////////////////////////////////////////////////////////
 		
 		Map<String, Object> writerProcess = new HashMap<String, Object>();

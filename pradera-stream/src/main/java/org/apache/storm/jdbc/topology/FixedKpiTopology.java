@@ -168,7 +168,7 @@ public class FixedKpiTopology  implements TopologySource {
 
 		SimpleJdbcMapper jdbcLookupMapperMock = new  KpiJdbcLookupMapper(outputFields , columnsMock);
 		String queryMock = " Select now() ";
-		JdbcLookupBolt kpiComparatorBolt = new KpiComparatorBolt( queryMock, (KpiJdbcLookupMapper) jdbcLookupMapperMock);
+		JdbcLookupBolt kpiComparatorBolt = new KpiComparatorBolt(null, queryMock, (KpiJdbcLookupMapper) jdbcLookupMapperMock);
 		((KpiComparatorBolt)kpiComparatorBolt).setName(Constant.StormComponent.COMPARATOR_BOLT);
 
 
@@ -181,7 +181,7 @@ public class FixedKpiTopology  implements TopologySource {
 		schemaColumns.add(new Column("MOCK", Types.NUMERIC));
 		SimpleJdbcMapper mapper = new KpiJdbcLookupMapper(outputFieldsMock,schemaColumns);
 		Map<String,String> 	mapInsert = new HashMap<String,String>();
-		JdbcInsertBolt kpiPersistentBolt = new UpsertKpiBolt((JdbcLookupMapper) mapper,mapInsert)
+		JdbcInsertBolt kpiPersistentBolt = new UpsertKpiBolt(null,(JdbcLookupMapper) mapper,mapInsert)
 				.withInsertQuery("EMPTY");
 
 		/**

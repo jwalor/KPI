@@ -11,6 +11,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.storm.Config;
 import org.apache.storm.jdbc.common.Column;
 import org.apache.storm.jdbc.common.ConnectionProvider;
+import org.apache.storm.jdbc.common.HikariCPConnectionProvider;
 import org.apache.storm.jdbc.mapper.JdbcLookupMapper;
 import org.apache.storm.jdbc.mapper.KpiJdbcLookupMapper;
 import org.apache.storm.jdbc.mapper.SimpleJdbcMapper;
@@ -56,9 +57,9 @@ public class UpsertKpiBolt extends JdbcInsertBolt {
 	private JdbcLookupMapper jdbcMapper;
 	Object map;
 
-	public UpsertKpiBolt(JdbcLookupMapper jdbcMapper, Map mapUpser) {
+	public UpsertKpiBolt(HikariCPConnectionProvider hikariCPConnectionProvider ,JdbcLookupMapper jdbcMapper, Map mapUpser) {
 
-		super(HikariCPConnectionSingletonTarget.getInstance(), jdbcMapper);
+		super(hikariCPConnectionProvider, jdbcMapper);
 		Validate.notNull(mapUpser);
 		this.mapInsert = mapUpser;
 		this.jdbcMapper = jdbcMapper;

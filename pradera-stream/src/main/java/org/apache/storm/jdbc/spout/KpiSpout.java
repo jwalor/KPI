@@ -93,6 +93,47 @@ public class KpiSpout implements IRichSpout ,  Serializable {
     	
     	this.jdbcClient = new JdbcClientExt(connectionProvider, queryTimeoutSecs);
         this.collector = collector;
+        
+        
+        
+        
+		Boolean _initializeScripts = (Boolean) topology.get(com.pradera.stream.constant.Constant.Fields.INITIALIZE_SCRIPT);
+
+		if ( _initializeScripts) {
+
+			int queryTimeoutSecs = 60;
+			JdbcClient jdbcClient = new JdbcClient(connectionProviderTarget, queryTimeoutSecs);
+
+			connectionProviderTarget.prepare();
+			Map<String, Object> setupSqls = Maps.newHashMap();
+			setupSqls = (Map<String, Object>) topology.get("preExecutions");
+
+			Object[] setupSqlsObj	=	setupSqls.values().toArray();
+
+			        	 for (Object sql : setupSqlsObj) {
+			 	            try {
+			 	            	jdbcClient.executeSql((String) sql);
+			 				} catch (Exception e) {
+			 					LOG.error(" ERROR MANAGMENT  :::: " + e.getCause());
+			 					return null;
+			 				}
+			           }
+
+			//////////////////////////////////////////////////////////////////
+			// Updating state _iniatialize to False. Only the first time that to run Topology.
+			        	 
+//			BasicDBObject newDocument = new BasicDBObject();
+//			newDocument.append("$set", new BasicDBObject().append(com.pradera.stream.constant.Constant.Fields.INITIALIZE_SCRIPT, false));
+//			topology.put(com.pradera.stream.constant.Constant.Fields.INITIALIZE_SCRIPT,false);
+
+			Bson 		filter1 		= 	Filters.eq("name", _setTopologyName);
+		 	topology	=	mongoDBClient.find(filter1, "topology");
+		 	topology.put(com.pradera.stream.constant.Constant.Fields.INITIALIZE_SCRIPT,false);
+			mongoDBClient.update(filter1, topology, true, false);
+			mongoDBClient.close();
+			
+			connectionProviderTarget.cleanup();
+		}
     }
     
     public void nextTuple() {
@@ -145,38 +186,24 @@ public class KpiSpout implements IRichSpout ,  Serializable {
     public Map<String, Object> getComponentConfiguration() {
     	
         LOG.info("Setting dinamycs  operations  on KpiSpout");
-        String user 	=  (this.spoutConfig.get(Constant.SettingMongo.USER) == null || 
-                		    StringUtils.isEmpty(this.spoutConfig.get(Constant.SettingMongo.USER).toString()) )	?
-							null:this.spoutConfig.get(Constant.SettingMongo.USER).toString();
-
-		String password = (this.spoutConfig.get(Constant.SettingMongo.PASSWORD) == null || 
-    		    			StringUtils.isEmpty(this.spoutConfig.get(Constant.SettingMongo.PASSWORD).toString()) )	?
-						   null:this.spoutConfig.get(Constant.SettingMongo.PASSWORD).toString(); 
-        
-		String host 	= this.spoutConfig.get(Constant.SettingMongo.HOST).toString();
-		int    port 	= Integer.parseInt(this.spoutConfig.get(Constant.SettingMongo.PORT).toString());
-		String dbName 		= this.spoutConfig.get(Constant.SettingMongo.DB).toString();
-		MongoDBClient mongoDBClient = new MongoDBClient(user,password,dbName,host,port);
+		MongoDBClient mongoDBClient =  gettingMongoDBClient();
 		
 		String _setTopologyName = (String) spoutConfig.get("name");
 		Bson 		filter 			= 	Filters.eq("name", _setTopologyName);
 		Document 	topology		=	mongoDBClient.find(filter, "topology");
 		
-		List<DBRef> processes		=	(List)topology.get(Constant.Fields.PROCESSES);	
-		filter 		= 	Filters.and( Filters.or(
-									 Filters.eq("_id", processes.get(0).getId())
-									 ,Filters.eq("_id", processes.get(1).getId())
-									 ,Filters.eq("_id", processes.get(2).getId())
-									 ,Filters.eq("_id", processes.get(3).getId())
-									 ,Filters.eq("_id", processes.get(4).getId())
-									 ,Filters.eq("_id", processes.get(5).getId())
-									 ,Filters.eq("_id", processes.get(6).getId())),
-						Filters.eq("name", Constant.StormComponent.JDBC_SPOUT));
+		List<DBRef> spoutList		=	(List)topology.get(Constant.Fields.SPOUTS);	
+	
+		List<Bson> list = new ArrayList<Bson>();
+		for(int i=0; i<spoutList.size(); i++) {
+			list.add(Filters.eq("_id", spoutList.get(i).getId()));
+		}
 		
-		Document 	taskComponent		=	mongoDBClient.find(filter, "process");
+		filter 		= 	Filters.and( Filters.or(list), Filters.eq("name", Constant.StormComponent.JDBC_SPOUT));
+		Document 	taskComponent		=	mongoDBClient.find(filter, "settlementSpout");
 		List<Object> fields				=	(List)taskComponent.get("fields");
+		
 		List<String> _fieldsName		=   new ArrayList<>(fields.size());
-
 		for(int i=0; i<fields.size(); i++) {
 			Map _mapField =  (Map)fields.get(i);
 			_fieldsName.add((String)_mapField.get("name"));
@@ -198,6 +225,12 @@ public class KpiSpout implements IRichSpout ,  Serializable {
 		setQueryTimeoutSecs(60);
 		setParameters(columns);		
 		this._sleepTime	=	(Long) taskComponent.get("time");
+		
+		
+		/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		
 		
 		// Getting info about connections
 
@@ -273,13 +306,26 @@ public class KpiSpout implements IRichSpout ,  Serializable {
 
 	@Override
 	public void activate() {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
 	public void deactivate() {
-		// TODO Auto-generated method stub
+	}
+	
+	protected MongoDBClient gettingMongoDBClient() {
+		
+		 String user 	=  (this.spoutConfig.get(Constant.SettingMongo.USER) == null || 
+     		    StringUtils.isEmpty(this.spoutConfig.get(Constant.SettingMongo.USER).toString()) )	?
+					null:this.spoutConfig.get(Constant.SettingMongo.USER).toString();
+
+		String password = (this.spoutConfig.get(Constant.SettingMongo.PASSWORD) == null || 
+			    			StringUtils.isEmpty(this.spoutConfig.get(Constant.SettingMongo.PASSWORD).toString()) )	?
+						   null:this.spoutConfig.get(Constant.SettingMongo.PASSWORD).toString(); 
+		
+		String host 	= this.spoutConfig.get(Constant.SettingMongo.HOST).toString();
+		int    port 	= Integer.parseInt(this.spoutConfig.get(Constant.SettingMongo.PORT).toString());
+		String dbName 		= this.spoutConfig.get(Constant.SettingMongo.DB).toString();
+		return new MongoDBClient(user,password,dbName,host,port);
 	}
 	
 }

@@ -17,6 +17,7 @@ import org.apache.storm.jdbc.bolt.UpsertKpiBolt;
 import org.apache.storm.jdbc.bolt.WriterApiBolt;
 import org.apache.storm.jdbc.common.Column;
 import org.apache.storm.jdbc.common.ConnectionProvider;
+import org.apache.storm.jdbc.common.HikariCPConnectionProvider;
 import org.apache.storm.jdbc.common.JdbcClient;
 import org.apache.storm.jdbc.mapper.JdbcLookupMapper;
 import org.apache.storm.jdbc.mapper.KpiJdbcLookupMapper;
@@ -78,110 +79,106 @@ public class FixedKpiTopologyTest  implements TopologySource {
 		Bson 		filter 		= 	Filters.eq("name", _setTopologyName);
 		Document 	topology	=	mongoDBClient.find(filter, "topology");
 
-		List<DBRef> communications		=	(List)topology.get(Constant.Fields.COMMUNICATIONS);		
-		Assertions.assertThat(communications.size()).isEqualTo(2);
-
-
-		DBRef	dbf1 = communications.get(0);
-		DBRef	dbf2 = communications.get(1);
-
-		filter 		= 	Filters.and(Filters.or(Filters.eq("_id", dbf1.getId()),Filters.eq("_id", dbf2.getId())),Filters.eq("origin", Constant.Fields.SOURCE));
-		Document 	communicationSource	=	mongoDBClient.find(filter, "communication");
-		Assertions.assertThat(communicationSource).isNotNull();
-		filter 		= 	Filters.and(Filters.or(Filters.eq("_id", dbf1.getId()),Filters.eq("_id", dbf2.getId())),Filters.eq("origin", Constant.Fields.TARGET));
-		Document 	communicationTarget	=	mongoDBClient.find(filter, "communication");
-		Assertions.assertThat(communicationTarget).isNotNull();
-
-		/**
-		 *  Loading properties to be used in HikariFactory or HikariProvider
-		 */
-		Map<String, Object> mapSource = Maps.newHashMap();
-		mapSource.putAll((Map) communicationSource.get(Constant.Fields.SETTING));
-
-		Map<String, Object> mapTarget = Maps.newHashMap();
-		mapTarget.putAll((Map) communicationTarget.get(Constant.Fields.SETTING));
-
-		mapSource.put("dataSource."+Constant.Fields.URL, mapSource.get(Constant.Fields.URL));
-		mapSource.remove(Constant.Fields.URL);
-		mapSource.put("dataSource."+Constant.Fields.USER, mapSource.get(Constant.Fields.USER));
-		mapSource.remove(Constant.Fields.USER);
-		mapSource.put("dataSource."+Constant.Fields.PASSWORD, mapSource.get(Constant.Fields.PASSWORD));
-		mapSource.remove(Constant.Fields.PASSWORD);
-		mapSource.put("registerMbeans", Boolean.TRUE);
-
-		mapTarget.put("dataSource."+Constant.Fields.URL, mapTarget.get(Constant.Fields.URL));
-		mapTarget.remove(Constant.Fields.URL);
-		mapTarget.put("dataSource."+Constant.Fields.USER, mapTarget.get(Constant.Fields.USER));
-		mapTarget.remove(Constant.Fields.USER);
-		mapTarget.put("dataSource."+Constant.Fields.PASSWORD, mapTarget.get(Constant.Fields.PASSWORD));
-		mapTarget.remove(Constant.Fields.PASSWORD);
-		mapTarget.put("registerMbeans", Boolean.TRUE);
-		mapTarget.put("maximumPoolSize", 40);
+//		List<DBRef> communications		=	(List)topology.get(Constant.Fields.COMMUNICATIONS);		
+//		Assertions.assertThat(communications.size()).isEqualTo(2);
+//
+//
+//		DBRef	dbf1 = communications.get(0);
+//		DBRef	dbf2 = communications.get(1);
+//
+//		filter 		= 	Filters.and(Filters.or(Filters.eq("_id", dbf1.getId()),Filters.eq("_id", dbf2.getId())),Filters.eq("origin", Constant.Fields.SOURCE));
+//		Document 	communicationSource	=	mongoDBClient.find(filter, "communication");
+//		Assertions.assertThat(communicationSource).isNotNull();
+//		filter 		= 	Filters.and(Filters.or(Filters.eq("_id", dbf1.getId()),Filters.eq("_id", dbf2.getId())),Filters.eq("origin", Constant.Fields.TARGET));
+//		Document 	communicationTarget	=	mongoDBClient.find(filter, "communication");
+//		Assertions.assertThat(communicationTarget).isNotNull();
+//
+//		/**
+//		 *  Loading properties to be used in HikariFactory or HikariProvider
+//		 */
+//		Map<String, Object> mapSource = Maps.newHashMap();
+//		mapSource.putAll((Map) communicationSource.get(Constant.Fields.SETTING));
+//
+//		Map<String, Object> mapTarget = Maps.newHashMap();
+//		mapTarget.putAll((Map) communicationTarget.get(Constant.Fields.SETTING));
+//
+//		mapSource.put("dataSource."+Constant.Fields.URL, mapSource.get(Constant.Fields.URL));
+//		mapSource.remove(Constant.Fields.URL);
+//		mapSource.put("dataSource."+Constant.Fields.USER, mapSource.get(Constant.Fields.USER));
+//		mapSource.remove(Constant.Fields.USER);
+//		mapSource.put("dataSource."+Constant.Fields.PASSWORD, mapSource.get(Constant.Fields.PASSWORD));
+//		mapSource.remove(Constant.Fields.PASSWORD);
+//		mapSource.put("registerMbeans", Boolean.TRUE);
+//
+//		mapTarget.put("dataSource."+Constant.Fields.URL, mapTarget.get(Constant.Fields.URL));
+//		mapTarget.remove(Constant.Fields.URL);
+//		mapTarget.put("dataSource."+Constant.Fields.USER, mapTarget.get(Constant.Fields.USER));
+//		mapTarget.remove(Constant.Fields.USER);
+//		mapTarget.put("dataSource."+Constant.Fields.PASSWORD, mapTarget.get(Constant.Fields.PASSWORD));
+//		mapTarget.remove(Constant.Fields.PASSWORD);
+//		mapTarget.put("registerMbeans", Boolean.TRUE);
+//		mapTarget.put("maximumPoolSize", 40);
+//		
+//		Boolean _initializeScripts = (Boolean) topology.get(com.pradera.stream.constant.Constant.Fields.INITIALIZE_SCRIPT);
+//		
+//		HikariCPConnectionSingletonTarget.setHikariCPConfigMap(mapTarget);
+//		connectionProviderTarget = HikariCPConnectionSingletonTarget.getInstance();
+//		connectionProviderTarget.cleanup();
 		
-		Boolean _initializeScripts = (Boolean) topology.get(com.pradera.stream.constant.Constant.Fields.INITIALIZE_SCRIPT);
-		
-		HikariCPConnectionSingletonTarget.setHikariCPConfigMap(mapTarget);
-		connectionProviderTarget = HikariCPConnectionSingletonTarget.getInstance();
-		connectionProviderTarget.cleanup();
-		
-		if ( _initializeScripts) {
-
-			int queryTimeoutSecs = 60;
-			JdbcClient jdbcClient = new JdbcClient(connectionProviderTarget, queryTimeoutSecs);
-
-			connectionProviderTarget.prepare();
-			Map<String, Object> setupSqls = Maps.newHashMap();
-			setupSqls = (Map<String, Object>) topology.get("preExecutions");
-
-			Object[] setupSqlsObj	=	setupSqls.values().toArray();
-
-			        	 for (Object sql : setupSqlsObj) {
-			 	            try {
-			 	            	jdbcClient.executeSql((String) sql);
-			 				} catch (Exception e) {
-			 					LOG.error(" ERROR MANAGMENT  :::: " + e.getCause());
-			 					return null; 
-			 				}
-			           }
-
-			//////////////////////////////////////////////////////////////////
-			// Updating state _iniatialize to False. Only the first time that to run Topology.
-			        	 
-//			BasicDBObject newDocument = new BasicDBObject();
-//			newDocument.append("$set", new BasicDBObject().append(com.pradera.stream.constant.Constant.Fields.INITIALIZE_SCRIPT, false));
-//			topology.put(com.pradera.stream.constant.Constant.Fields.INITIALIZE_SCRIPT,false);
-			
-			Bson 		filter1 		= 	Filters.eq("name", _setTopologyName);
-		 	topology	=	mongoDBClient.find(filter1, "topology");
-		 	topology.put(com.pradera.stream.constant.Constant.Fields.INITIALIZE_SCRIPT,false);
-			mongoDBClient.update(filter1, topology, true, false);
-			mongoDBClient.close();
-			
-			connectionProviderTarget.cleanup();
-		}
+//		if ( _initializeScripts) {
+//
+//			int queryTimeoutSecs = 60;
+//			JdbcClient jdbcClient = new JdbcClient(connectionProviderTarget, queryTimeoutSecs);
+//
+//			connectionProviderTarget.prepare();
+//			Map<String, Object> setupSqls = Maps.newHashMap();
+//			setupSqls = (Map<String, Object>) topology.get("preExecutions");
+//
+//			Object[] setupSqlsObj	=	setupSqls.values().toArray();
+//
+//			        	 for (Object sql : setupSqlsObj) {
+//			 	            try {
+//			 	            	jdbcClient.executeSql((String) sql);
+//			 				} catch (Exception e) {
+//			 					LOG.error(" ERROR MANAGMENT  :::: " + e.getCause());
+//			 					return null; 
+//			 				}
+//			           }
+//
+//			//////////////////////////////////////////////////////////////////
+//			// Updating state _iniatialize to False. Only the first time that to run Topology.
+//			        	 
+////			BasicDBObject newDocument = new BasicDBObject();
+////			newDocument.append("$set", new BasicDBObject().append(com.pradera.stream.constant.Constant.Fields.INITIALIZE_SCRIPT, false));
+////			topology.put(com.pradera.stream.constant.Constant.Fields.INITIALIZE_SCRIPT,false);
+//			
+//			Bson 		filter1 		= 	Filters.eq("name", _setTopologyName);
+//		 	topology	=	mongoDBClient.find(filter1, "topology");
+//		 	topology.put(com.pradera.stream.constant.Constant.Fields.INITIALIZE_SCRIPT,false);
+//			mongoDBClient.update(filter1, topology, true, false);
+//			mongoDBClient.close();
+//			
+//			connectionProviderTarget.cleanup();
+//		}
 
 		/**
 		 *  Valores por defauls , luego de la construcción de la topología serán reemplazados
 		 */
 		Fields outputFields = new Fields("Constants.PAYLOAD");
 		List<Column> columnsMock = Lists.newArrayList(new Column("MOCK", Types.NUMERIC));
-
 		SimpleJdbcMapper jdbcLookupMapperMock = new  KpiJdbcLookupMapper(outputFields , columnsMock);
 		String queryMock = " Select now() ";
-		JdbcLookupBolt kpiComparatorBolt = new KpiComparatorBolt( queryMock, (KpiJdbcLookupMapper) jdbcLookupMapperMock);
+		
+		HikariCPConnectionProvider hikariCPConnectionProviderMock = new HikariCPConnectionProvider(Maps.newHashMap());
+		JdbcLookupBolt kpiComparatorBolt = new KpiComparatorBolt( hikariCPConnectionProviderMock,queryMock, (KpiJdbcLookupMapper) jdbcLookupMapperMock);
 		((KpiComparatorBolt)kpiComparatorBolt).setName(Constant.StormComponent.COMPARATOR_BOLT);
-
-
-		/**
-		 * 
-		 */
 
 		Fields outputFieldsMock = new Fields("MOCK"); 
 		List<Column> schemaColumns = new ArrayList<Column>();
 		schemaColumns.add(new Column("MOCK", Types.NUMERIC));
 		SimpleJdbcMapper mapper = new KpiJdbcLookupMapper(outputFieldsMock,schemaColumns);
 		Map<String,String> 	mapInsert = new HashMap<String,String>();
-		JdbcInsertBolt kpiPersistentBolt = new UpsertKpiBolt((JdbcLookupMapper) mapper,mapInsert)
+		JdbcInsertBolt kpiPersistentBolt = new UpsertKpiBolt( hikariCPConnectionProviderMock, (JdbcLookupMapper) mapper,mapInsert)
 				.withInsertQuery("EMPTY");
 
 		/**
