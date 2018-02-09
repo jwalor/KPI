@@ -256,7 +256,7 @@ public class PopulateSettlement extends PopulateCollection {
 		
 		final Map field4 = new HashMap<String, Object>();
 		field4.put("name", "OPERATION_PART"); 
-		field4.put("type", Types.NUMERIC);
+		field4.put("type", Types.VARCHAR);
 		
 		final Map field5 = new HashMap<String, Object>();
 		field5.put("name", "SETTLEMENT_AMOUNT"); 

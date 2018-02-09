@@ -195,7 +195,7 @@ public class FixedKpiTopology  implements TopologySource {
 		
 		TopologyBuilder builder = new TopologyBuilder();
 
-		builder.setSpout(USER_SPOUT, kpiSpout, 6);
+		builder.setSpout(USER_SPOUT, kpiSpout, 1);
 		builder.setBolt(LOOKUP_BOLT, kpiComparatorBolt, NUM_TASKS).setNumTasks(NUM_TASKS).shuffleGrouping(USER_SPOUT);
 		builder.setBolt(PERSISTANCE_BOLT, kpiPersistentBolt, NUM_TASKS).setNumTasks(NUM_TASKS).shuffleGrouping(LOOKUP_BOLT,NATIVE_STREAM);
 		builder.setBolt(LOGIC_BOLT, new LogicKpiBolt(), NUM_TASKS).setNumTasks(NUM_TASKS).shuffleGrouping(LOOKUP_BOLT,LOGIC_STREAM);

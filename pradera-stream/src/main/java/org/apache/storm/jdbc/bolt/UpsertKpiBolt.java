@@ -90,13 +90,14 @@ public class UpsertKpiBolt extends JdbcInsertBolt {
 		Bson filter = Filters.regex("name", Constant.StormComponent.INSERT_NATIVE_BOLT);
 		Document taskComponent = mongoDBClient.find(filter, "process");
 
-		List<Object> parameters = (List) taskComponent.get("columnFieldsMapp");
+		List<Object> parameters = (List) taskComponent.get("columnFieldsMap");
 		Map _mapParameter = null;
 		List<Column> columns = new ArrayList<Column>(parameters.size());
 
 		for (int i = 0; i < parameters.size(); i++) {
 			_mapParameter = (Map) parameters.get(i);
 			columns.add(new Column((String) _mapParameter.get("name"), (Integer) _mapParameter.get("type")));
+			LOG.debug(columns.toString());
 		}
 
 		Fields outputFieldsMock = new Fields("MOCK");
@@ -145,6 +146,9 @@ public class UpsertKpiBolt extends JdbcInsertBolt {
 
 			Map<String, Object> payloadMap = operationPayload.getPayload();
 			Tuple tupleNative = (Tuple) payloadMap.get("TUPLE");
+			LOG.debug(" UpsertKpiBolt ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
+			LOG.debug(" UpsertKpiBolt " + tupleNative.toString());
+			
 			KpiJdbcLookupMapper kpiJdbcLookupMapper = (KpiJdbcLookupMapper) jdbcMapper;
 
 			/**

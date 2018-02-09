@@ -39,7 +39,7 @@ public  class HikariCPConnectionSingletonTarget extends  HikariCPConnectionProvi
 		super(hikariCPConfigMap);
 	}
 
-	public static HikariCPConnectionSingletonTarget getInstance() {
+	public synchronized static HikariCPConnectionSingletonTarget getInstance() {
 		if (INSTANCE == null) {
 			Validate.notNull(HikariCPConnectionSingletonTarget.hikariCPConfigMap);
 			INSTANCE = new HikariCPConnectionSingletonTarget(HikariCPConnectionSingletonTarget.hikariCPConfigMap);
@@ -59,7 +59,7 @@ public  class HikariCPConnectionSingletonTarget extends  HikariCPConnectionProvi
 		return dataSource;
 	}
 
-	public static Boolean lostReferences() {
+	public synchronized static Boolean lostReferences() {
 		if (INSTANCE == null && HikariCPConnectionSingletonTarget.hikariCPConfigMap == null) {
 			 return true;
 		}
@@ -67,38 +67,5 @@ public  class HikariCPConnectionSingletonTarget extends  HikariCPConnectionProvi
 		return false;
 	}
 	
-//  public static  synchronized void prepare(HikariCPConnectionSingletonTarget hikariCPConnectionSingletonTarget) {
-//    if(hikariCPConnectionSingletonTarget.dataSource == null) {
-//        Properties properties = new Properties();
-//        properties.putAll(HikariCPConnectionSingletonTarget.hikariCPConfigMap);
-//        HikariConfig config = new HikariConfig(properties);
-//        if(properties.containsKey("dataSource.url")) {
-//            LOG.info("DataSource Url: " + properties.getProperty("dataSource.url"));
-//        }
-//        else if (config.getJdbcUrl() != null) {
-//            LOG.info("JDBC Url: " + config.getJdbcUrl());
-//        }
-//        hikariCPConnectionSingletonTarget.dataSource = new HikariDataSource(config);
-//        hikariCPConnectionSingletonTarget.dataSource.setAutoCommit(false);
-//    }
-// }
-//	
-//
-//	@Override
-//	public Connection getConnection() {
-//		try {
-//			return dataSource.getConnection();
-//		} catch (SQLException e) {
-//			throw new RuntimeException(e);
-//		}
-//	}
-//
-//	@Override
-//	public void cleanup() {
-//		if (dataSource != null) {
-//			dataSource.close();
-//		}
-//	}
-
 	
 }

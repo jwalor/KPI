@@ -46,7 +46,7 @@ public class MongoDBClient {
 
     	this.database = database;
 		DB db = this.client.getDB(database);
-		System.out.println(db.getCollection("cat1Document"));
+		System.out.println(db.getCollection("topology"));
     }
     
     public MongoCollection<Document> getCollecion(String collectionName ){
@@ -106,7 +106,7 @@ public class MongoDBClient {
         if (many) {
             collection.updateMany(filter, document, options);
         }else {
-            collection.updateOne(filter, document, options);
+        	 collection.replaceOne(filter,  (Document) document, options);
         }
     }
 

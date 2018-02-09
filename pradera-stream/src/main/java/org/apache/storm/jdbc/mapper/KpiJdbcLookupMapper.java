@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.storm.jdbc.bolt.KpiComparatorBolt;
 import org.apache.storm.jdbc.common.Column;
 import org.apache.storm.jdbc.common.Util;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -36,6 +35,7 @@ public class KpiJdbcLookupMapper extends SimpleJdbcLookupMapper implements KpiLo
 	 */
 	private Fields 			outputFields;
 	private List<Column> 	outputColumnFields;
+	
 
 	public KpiJdbcLookupMapper(Fields outputFields, List<Column> queryColumns) {
 		super(outputFields, queryColumns);
@@ -137,7 +137,56 @@ public class KpiJdbcLookupMapper extends SimpleJdbcLookupMapper implements KpiLo
 
 		return map;
 	}
+	
+	
+	@Override
+    public List<Column> getColumns(ITuple tuple) {
+        List<Column> columns = new ArrayList<Column>();
+        for(Column column : getSchemaColumns()) {
+            String columnName = column.getColumnName();
+            Integer columnSqlType = column.getSqlType();
 
+            if(Util.getJavaType(columnSqlType).equals(String.class)) {
+                String value = tuple.getStringByField(columnName);
+                columns.add(new Column(columnName, value, columnSqlType));
+            } else if(Util.getJavaType(columnSqlType).equals(Short.class)) {
+                Short value = tuple.getShortByField(columnName);
+                columns.add(new Column(columnName, value, columnSqlType));
+            } else if(Util.getJavaType(columnSqlType).equals(Integer.class)) {
+                Integer value = tuple.getIntegerByField(columnName);
+                columns.add(new Column(columnName, value, columnSqlType));
+            } else if(Util.getJavaType(columnSqlType).equals(Long.class)) {
+                Long value = tuple.getLongByField(columnName);
+                columns.add(new Column(columnName, value, columnSqlType));
+            } else if(Util.getJavaType(columnSqlType).equals(Double.class)) {
+                Double value = tuple.getDoubleByField(columnName);
+                columns.add(new Column(columnName, value, columnSqlType));
+            } else if(Util.getJavaType(columnSqlType).equals(Float.class)) {
+                Float value = tuple.getFloatByField(columnName);
+                columns.add(new Column(columnName, value, columnSqlType));
+            } else if(Util.getJavaType(columnSqlType).equals(Boolean.class)) {
+                Boolean value = tuple.getBooleanByField(columnName);
+                columns.add(new Column(columnName, value, columnSqlType));
+            } else if(Util.getJavaType(columnSqlType).equals(byte[].class)) {
+                byte[] value = tuple.getBinaryByField(columnName);
+                columns.add(new Column(columnName, value, columnSqlType));
+            } else if(Util.getJavaType(columnSqlType).equals(Date.class)) {
+            	Time value = (Time)tuple.getValueByField(columnName);
+                columns.add(new Column(columnName, new Date(value.getTime()), columnSqlType));
+            } else if(Util.getJavaType(columnSqlType).equals(Time.class)) {
+            	Time value = (Time)tuple.getValueByField(columnName);
+                columns.add(new Column(columnName, new Time(value.getTime()), columnSqlType));
+            } else if(Util.getJavaType(columnSqlType).equals(Timestamp.class)) {
+            	Timestamp value = (Timestamp)tuple.getValueByField(columnName);
+                columns.add(new Column(columnName, new Timestamp(value.getTime()), columnSqlType));
+            } else {
+                throw new RuntimeException("Unsupported java type in tuple " + Util.getJavaType(columnSqlType));
+            }
+        }
+        return columns;
+    }
+	
+	
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
 		declarer.declare(outputFields);

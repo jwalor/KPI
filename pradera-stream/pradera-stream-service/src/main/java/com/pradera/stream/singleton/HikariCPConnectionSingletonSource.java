@@ -43,7 +43,7 @@ public class HikariCPConnectionSingletonSource extends HikariCPConnectionProvide
 		super(hikariCPConfigMap);
 	}
 
-	public static HikariCPConnectionSingletonSource getInstance() {
+	public synchronized static HikariCPConnectionSingletonSource getInstance() {
 		if (INSTANCE == null) {
 			Validate.notNull(HikariCPConnectionSingletonSource.hikariCPConfigMap);
 			INSTANCE = new HikariCPConnectionSingletonSource(HikariCPConnectionSingletonSource.hikariCPConfigMap);
@@ -59,7 +59,7 @@ public class HikariCPConnectionSingletonSource extends HikariCPConnectionProvide
 		HikariCPConnectionSingletonSource.hikariCPConfigMap = hikariCPConfigMap;
 	}
 	
-	public static Boolean lostReferences() {
+	public synchronized static Boolean lostReferences() {
 		if (INSTANCE == null && HikariCPConnectionSingletonSource.hikariCPConfigMap == null) {
 			 return true;
 		}
