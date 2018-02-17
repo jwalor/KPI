@@ -9,10 +9,10 @@ import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 import com.arkin.kpi.socket.service.IntegrationService;
-import com.arkin.kpi.socket.util.Constant;
+import com.arkin.kpi.socket.util.Constantes;
 import com.arkin.kpi.socket.util.DateUtil;
 
-
+@SuppressWarnings({"unchecked" , "rawtypes" })
 public class WebSocketDisconnectHandler<S> implements ApplicationListener<SessionDisconnectEvent> {
 
 	private SimpMessageSendingOperations messagingTemplate;
@@ -26,6 +26,7 @@ public class WebSocketDisconnectHandler<S> implements ApplicationListener<Sessio
 		this.integrationService = integrationService;
 	}
 
+	
 	public void onApplicationEvent(SessionDisconnectEvent event) {
 		String id = event.getSessionId();
 		if(id == null) {
@@ -35,11 +36,12 @@ public class WebSocketDisconnectHandler<S> implements ApplicationListener<Sessio
 		StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
 		logger.info(headerAccessor.toString());
 		
+		
 		Map map =  new HashMap<String, Object>();
-		map.put(Constant.idSession, id);
-		map.put(Constant.state, 0); //disabled
-		map.put(Constant.userName, headerAccessor.getUser().getName());
-		map.put(Constant.updateDate, DateUtil.getSystemTimestamp());
+		map.put(Constantes.idSession, id);
+		map.put(Constantes.state, 0); //disabled
+		map.put(Constantes.userName, headerAccessor.getUser().getName());
+		map.put(Constantes.updateDate, DateUtil.getSystemTimestamp());
 		
 		integrationService.deleteSessionSocket(map);
 		

@@ -18,7 +18,6 @@ import org.apache.storm.jdbc.bolt.WriterApiBolt;
 import org.apache.storm.jdbc.common.Column;
 import org.apache.storm.jdbc.common.ConnectionProvider;
 import org.apache.storm.jdbc.common.HikariCPConnectionProvider;
-import org.apache.storm.jdbc.common.JdbcClient;
 import org.apache.storm.jdbc.mapper.JdbcLookupMapper;
 import org.apache.storm.jdbc.mapper.KpiJdbcLookupMapper;
 import org.apache.storm.jdbc.mapper.SimpleJdbcMapper;
@@ -28,16 +27,14 @@ import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.tuple.Fields;
 import org.bson.Document;
 import org.bson.conversions.Bson;
-import org.fest.assertions.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mongodb.DBRef;
 import com.mongodb.client.model.Filters;
 import com.pradera.stream.constant.Constant;
-import com.pradera.stream.singleton.HikariCPConnectionSingletonTarget;
+import com.pradera.stream.singleton.ConnectionManager;
 
 
 /**
@@ -60,8 +57,7 @@ public class FixedKpiTopologyTest  implements TopologySource {
 	
     private static final Integer NUM_WORKERS=1;
 	private static final Integer NUM_TASKS=10;
-	private ConnectionProvider connectionProviderTarget;
-	private ConnectionProvider connectionProviderSource;
+
     
 	private static final Logger LOG = LoggerFactory.getLogger(FixedKpiTopologyTest.class);
 
@@ -78,6 +74,17 @@ public class FixedKpiTopologyTest  implements TopologySource {
 		MongoDBClient mongoDBClient = new MongoDBClient(null,null,dbName,host,port);
 		Bson 		filter 		= 	Filters.eq("name", _setTopologyName);
 		Document 	topology	=	mongoDBClient.find(filter, "topology");
+		
+		// SI NO EXISTE LA TOPOLOGIA DEBERIA TERNIMAR TODO ACÁ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11
+//		SI NO EXISTE LA TOPOLOGIA DEBERIA TERNIMAR TODO ACÁ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11
+//		SI NO EXISTE LA TOPOLOGIA DEBERIA TERNIMAR TODO ACÁ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11
+//		SI NO EXISTE LA TOPOLOGIA DEBERIA TERNIMAR TODO ACÁ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11
+//		
+//		SI NO EXISTE LA TOPOLOGIA DEBERIA TERNIMAR TODO ACÁ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11
+//		SI NO EXISTE LA TOPOLOGIA DEBERIA TERNIMAR TODO ACÁ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11
+//		SI NO EXISTE LA TOPOLOGIA DEBERIA TERNIMAR TODO ACÁ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11
+//		
+//		SI NO EXISTE LA TOPOLOGIA DEBERIA TERNIMAR TODO ACÁ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11
 
 //		List<DBRef> communications		=	(List)topology.get(Constant.Fields.COMMUNICATIONS);		
 //		Assertions.assertThat(communications.size()).isEqualTo(2);
@@ -119,48 +126,11 @@ public class FixedKpiTopologyTest  implements TopologySource {
 //		mapTarget.put("registerMbeans", Boolean.TRUE);
 //		mapTarget.put("maximumPoolSize", 40);
 //		
-//		Boolean _initializeScripts = (Boolean) topology.get(com.pradera.stream.constant.Constant.Fields.INITIALIZE_SCRIPT);
-//		
 //		HikariCPConnectionSingletonTarget.setHikariCPConfigMap(mapTarget);
 //		connectionProviderTarget = HikariCPConnectionSingletonTarget.getInstance();
 //		connectionProviderTarget.cleanup();
-		
-//		if ( _initializeScripts) {
-//
-//			int queryTimeoutSecs = 60;
-//			JdbcClient jdbcClient = new JdbcClient(connectionProviderTarget, queryTimeoutSecs);
-//
-//			connectionProviderTarget.prepare();
-//			Map<String, Object> setupSqls = Maps.newHashMap();
-//			setupSqls = (Map<String, Object>) topology.get("preExecutions");
-//
-//			Object[] setupSqlsObj	=	setupSqls.values().toArray();
-//
-//			        	 for (Object sql : setupSqlsObj) {
-//			 	            try {
-//			 	            	jdbcClient.executeSql((String) sql);
-//			 				} catch (Exception e) {
-//			 					LOG.error(" ERROR MANAGMENT  :::: " + e.getCause());
-//			 					return null; 
-//			 				}
-//			           }
-//
-//			//////////////////////////////////////////////////////////////////
-//			// Updating state _iniatialize to False. Only the first time that to run Topology.
-//			        	 
-////			BasicDBObject newDocument = new BasicDBObject();
-////			newDocument.append("$set", new BasicDBObject().append(com.pradera.stream.constant.Constant.Fields.INITIALIZE_SCRIPT, false));
-////			topology.put(com.pradera.stream.constant.Constant.Fields.INITIALIZE_SCRIPT,false);
-//			
-//			Bson 		filter1 		= 	Filters.eq("name", _setTopologyName);
-//		 	topology	=	mongoDBClient.find(filter1, "topology");
-//		 	topology.put(com.pradera.stream.constant.Constant.Fields.INITIALIZE_SCRIPT,false);
-//			mongoDBClient.update(filter1, topology, true, false);
-//			mongoDBClient.close();
-//			
-//			connectionProviderTarget.cleanup();
-//		}
 
+		
 		/**
 		 *  Valores por defauls , luego de la construcción de la topología serán reemplazados
 		 */

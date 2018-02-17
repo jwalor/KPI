@@ -29,12 +29,12 @@ public class HikariCPConnectionSingletonSource extends HikariCPConnectionProvide
 	 */
 	private static final long serialVersionUID = 5006266166721749291L;
 	private static HikariCPConnectionSingletonSource INSTANCE;
-	public  static HikariDataSource dataSource;
 	private static final Logger LOG = LoggerFactory.getLogger(HikariCPConnectionSingletonSource.class);
 
 	private String info = "Initial info class";
-	private static Map<String, Object> hikariCPConfigMap;
-
+	public static Map<String, Object> hikariCPConfigMap;
+	private String dataSourceName;
+	
 	public HikariCPConnectionSingletonSource() {
 		super(hikariCPConfigMap);
 	}
@@ -54,6 +54,14 @@ public class HikariCPConnectionSingletonSource extends HikariCPConnectionProvide
 	public static Map<String, Object> getHikariCPConfigMap() {
 		return hikariCPConfigMap;
 	}
+	
+	public String getDataSourceName() {
+		return dataSourceName;
+	}
+
+	public void setDataSourceName(String dataSourceName) {
+		this.dataSourceName = dataSourceName;
+	}
 
 	public static void setHikariCPConfigMap(Map<String, Object> hikariCPConfigMap) {
 		HikariCPConnectionSingletonSource.hikariCPConfigMap = hikariCPConfigMap;
@@ -67,56 +75,4 @@ public class HikariCPConnectionSingletonSource extends HikariCPConnectionProvide
 		return false;
 	}
 	
-//	public synchronized void prepare() {
-//		if (dataSource == null) {
-//			Properties properties = new Properties();
-//			properties.putAll(HikariCPConnectionSingletonSource.hikariCPConfigMap);
-//			HikariConfig config = new HikariConfig(properties);
-//			if (properties.containsKey("dataSource.url")) {
-//				LOG.info("DataSource Url: " + properties.getProperty("dataSource.url"));
-//			} else if (config.getJdbcUrl() != null) {
-//				LOG.info("JDBC Url: " + config.getJdbcUrl());
-//			}
-//			dataSource = new HikariDataSource(config);
-//			dataSource.setAutoCommit(false);
-//		}
-//	}
-	
-//	public  synchronized void prepare1() {
-//		if (dataSource1 == null) {
-//			Properties properties = new Properties();
-//			properties.putAll(HikariCPConnectionSingletonSource.hikariCPConfigMap);
-//			HikariConfig config = new HikariConfig(properties);
-//			if (properties.containsKey("dataSource.url")) {
-//				LOG.info("DataSource Url: " + properties.getProperty("dataSource.url"));
-//			} else if (config.getJdbcUrl() != null) {
-//				LOG.info("JDBC Url: " + config.getJdbcUrl());
-//			}
-//			dataSource1 = new HikariDataSource1(config);
-//			dataSource1.setAutoCommit(false);
-//		}
-//	}
-
-//	@Override
-//	public Connection getConnection() {
-//		try {
-//			if (StringUtils.isEmpty(dataSource1.getDataSourceClassName())) {
-//				dataSource1.setDataSourceClassName("oracle.jdbc.pool.OracleDataSource");
-//				dataSource1.addDataSourceProperty("user", "CSDCORE_BVL");
-//				dataSource1.addDataSourceProperty("url", "jdbc:oracle:thin:@52.39.34.204:1521:xe");
-//				dataSource1.addDataSourceProperty("password", "CSDCORE_BVL");
-//			}
-//			return dataSource1.getConnection();
-//		} catch (SQLException e) {
-//			throw new RuntimeException(e);
-//		}
-//	}
-//
-//	@Override
-//	public void cleanup() {
-//		if (dataSource1 != null) {
-//			dataSource1.close();
-//		}
-//	}
-
 }

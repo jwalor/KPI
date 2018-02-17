@@ -133,7 +133,7 @@ public abstract class AbstractKpiTopology  {
          }
 //         connectionProviderTarget.cleanup();
          
-         this.kpiSpout = new KpiSpout();
+         this.kpiSpout = new KpiSpout(null);
          Fields outputFields = new Fields("ID_HOLDER_ACCOUNT_OPERATION_PK", "ID_MECHANISM_OPERATION_FK", "ID_HOLDER_ACCOUNT_FK", "OPERATION_PART",
          		"SETTLEMENT_AMOUNT", "SETTLED_QUANTITY", "LAST_MODIFY_DATE");
          

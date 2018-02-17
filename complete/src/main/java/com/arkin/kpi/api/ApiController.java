@@ -115,10 +115,13 @@ public class ApiController {
 	public ResponseEntity<?> processTuple1(@RequestBody String input) throws IOException {
 		Map  mapEntity	 = JsonUtils.jsonToMap((String)input);
 		Map<String,Object> dashboards = null;
+		
 		try {
 			dashboards = sessionDashboardService.getDashboardsSessions(mapEntity);
 			
+			LOGGER.debug(" Process streaming came to consume one service : " + dashboards);
 			if ( !dashboards.isEmpty()) {
+				
 				for (Map.Entry<String, Object> entry : dashboards.entrySet()) {
 					SimpMessageHeaderAccessor headerAccessor = SimpMessageHeaderAccessor.create(SimpMessageType.MESSAGE);
 					headerAccessor.setSessionId(entry.getKey().toString());

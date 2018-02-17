@@ -12,6 +12,11 @@ import org.springframework.session.MapSessionRepository;
 import org.springframework.session.SessionRepository;
 import org.springframework.session.web.http.SessionRepositoryFilter;
 
+/**
+ * 
+ * @author jalor
+ *
+ */
 @Configuration
 public class SessionConfig {
 

@@ -37,14 +37,14 @@ public class ApplicationDaoConfig {
     }
     
 	
-	@Bean
-	@Primary
-	@ConfigurationProperties("spring.datasource")
-	public DataSourceProperties dataSourceProperties() {
-		DataSourceProperties dataSourceProperties = new DataSourceProperties();
-		//dataSourceProperties.
-	    return dataSourceProperties;
-	}
+//	@Bean
+//	@Primary
+//	@ConfigurationProperties("spring.datasource")
+//	public DataSourceProperties dataSourceProperties() {
+//		DataSourceProperties dataSourceProperties = new DataSourceProperties();
+//		//dataSourceProperties.
+//	    return dataSourceProperties;
+//	}
 	
     @Bean(destroyMethod = "shutdown")
     public HikariDataSource dataSource(DataSourceProperties properties) {

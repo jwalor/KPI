@@ -4,7 +4,17 @@ import com.arkin.kpi.quartz.model.type.GenericStateType;
 import com.arkin.kpi.quartz.model.type.NotificationSendType;
 
 public class Constantes {
-
+	
+	public static final Integer SUCCESS = 1;
+	public static final Integer ERROR = 0;
+	
+	public static final String	 userName = "userName";
+	public static final String	 idSession = "idSession";
+	public static final String	 dashBoard = "dashBoard";
+	public static final String	 registerDate = "registerDate";
+	public static final String	 updateDate = "updateDate";
+	public static final String	 state 		= "state";
+	
 	public static abstract class TABLES_NAME {
 
 		public final static String NOTIFICATION_PROCESS = "notification_process";
@@ -144,7 +154,7 @@ public class Constantes {
 		public static final String SELECT_DASHBOARD_KPIS_BY_TABLE = " select distinct dbo.path_dashboard,kpc.id_kpi_component_pk, kpc.kpi_name "
 				+ " from " + TABLES_NAME.INTEGRATION_TABLE + " itb " 
 				+ " inner join " + TABLES_NAME.INTEGRATION_TABLE_COLUMN + " itc " 
-				+ " 	on itb.id_integration_table_pk = itc.id_integration_table_fk and itb.table_name =:tableName "
+				+ " 	on itb.id_integration_table_pk = itc.id_integration_table_fk and itb.table_name =:tableTarget "
 				+ " inner join " + TABLES_NAME.INTEGRATION_VIEW + " itv " 
 				+ " 	on itb.id_integration_table_pk = itv.id_integration_table_fk " 
 				+ "	inner join " + TABLES_NAME.INTEGRATION_VIEW_COLUMN + " ivc " 

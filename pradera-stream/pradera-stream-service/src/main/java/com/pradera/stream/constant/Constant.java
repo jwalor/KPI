@@ -19,6 +19,8 @@ public class Constant {
 	
 	public static class Fields {
 		
+		public static final String DATASOURCES 			= "dataSources";
+		public static final String DATASOURCE_NAME 		= "dataSourceName";
 		public static final String NAME 				= "name";
 		public static final String TABLE_TARGET 		= "tableTarget";
 		public static final String CONNECTION_TYPE 		= "connectionType";

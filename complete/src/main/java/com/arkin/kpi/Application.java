@@ -6,7 +6,6 @@ import static org.ehcache.config.builders.CacheManagerBuilder.newCacheManager;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.Executor;
 
 import org.ehcache.Cache;
 import org.ehcache.CacheManager;
@@ -14,25 +13,24 @@ import org.ehcache.config.Configuration;
 import org.ehcache.xml.XmlConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.web.support.SpringBootServletInitializer;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
-import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import com.arkin.kpi.quartz.model.to.DashboardKpiTo;
 
 @EnableCaching
 @SpringBootApplication
 @EnableAsync
-public class Application {
+public class Application  extends SpringBootServletInitializer {
 	
-	
+	    
 	private static final Logger LOGGER = LoggerFactory.getLogger(Application.class);	    
 	
     public static void main(String[] args) {
@@ -44,7 +42,7 @@ public class Application {
 	@Bean
     public CommandLineRunner commandLineRunner(ApplicationContext ctx) {
     	
-    	 LOGGER.info("Creating cache manager via XML resource");
+    	 LOGGER.info("Creating cache manager via XML resource ");
  	    Configuration xmlConfig = new XmlConfiguration(Application.class.getResource("/ehcache.xml"));
  	    try (CacheManager cacheManager = newCacheManager(xmlConfig)) {
  	      cacheManager.init();    	      
@@ -74,15 +72,9 @@ public class Application {
         };
     }
     
-//    @Bean
-//    public Executor asyncExecutor() {
-//        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-//        executor.setCorePoolSize(2);
-//        executor.setMaxPoolSize(2);
-//        executor.setQueueCapacity(500);
-//        executor.setThreadNamePrefix("SendEmail-");
-//        executor.initialize();
-//        return executor;
-//    }
+    @Override
+    protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
+        return application.sources(Application.class);
+    }
     
 }

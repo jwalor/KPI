@@ -1,6 +1,8 @@
 package com.pradera.stream.util;
 
 import java.text.MessageFormat;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -10,6 +12,7 @@ import org.apache.commons.lang3.StringUtils;
  *
  */
 public final class StringUtil extends StringUtils {
+	
 	
 	private StringUtil() {
 	}

@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.arkin.kpi.socket.util.Constant;
+import com.arkin.kpi.socket.util.Constantes;
 
 
 public class ResponseError implements Serializable{
@@ -21,7 +21,7 @@ public class ResponseError implements Serializable{
 	private List<ErrorBean> errorList;
 	
 	public ResponseError() {
-		errorCode = Constant.SUCCESS;
+		errorCode = Constantes.SUCCESS;
 		errorMessage = null;
 		errorList = new ArrayList<ErrorBean>();
 	}
@@ -75,7 +75,7 @@ public class ResponseError implements Serializable{
 	 */
 	public void addError(Integer errorCode, String errorMessage) {
 		addError(new ErrorBean(errorCode, errorMessage));
-		errorCode = Constant.ERROR;
+		errorCode = Constantes.ERROR;
 	}
 	
 	public void addError(ErrorBean error){

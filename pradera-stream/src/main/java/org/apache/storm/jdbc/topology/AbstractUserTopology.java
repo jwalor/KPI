@@ -102,7 +102,7 @@ public abstract class AbstractUserTopology {
             jdbcClient.executeSql(sql);
         }
 
-        this.kpiSpout = new KpiSpout();
+        this.kpiSpout = new KpiSpout(null);
         
         this.jdbcMapper = new SimpleJdbcMapper(TABLE_NAME, connectionProvider);
         connectionProvider.cleanup();

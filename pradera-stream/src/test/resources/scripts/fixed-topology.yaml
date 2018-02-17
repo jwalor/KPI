@@ -3,7 +3,7 @@
 # setting about topologies for kpis project.
 
 
-name: "settlement1Topology"
+name: "KPITopology"
 config:
   topology.workers: 1
   topology.debug: false
@@ -12,10 +12,10 @@ config:
 #  PASSWORD: admin
   USER:
   PASSWORD:
-  DB: storm_config
+  DB: storm_config2
   HOST: localhost
   PORT: 27017
-  name: "settlement1Topology"
+  name: "KPITopology"
 topologySource:
   className: "org.apache.storm.topologies.FixedKpiTopologyTest"
 

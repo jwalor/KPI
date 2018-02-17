@@ -13,7 +13,7 @@ import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.web.socket.messaging.SessionConnectEvent;
 
 import com.arkin.kpi.socket.service.IntegrationService;
-import com.arkin.kpi.socket.util.Constant;
+import com.arkin.kpi.socket.util.Constantes;
 import com.arkin.kpi.socket.util.DateUtil;
 import com.arkin.kpi.socket.util.StringUtil;
 
@@ -46,14 +46,14 @@ public class WebSocketConnectHandler<S> implements ApplicationListener<SessionCo
 	    
 	    Map nativeHeader = accessor.toNativeHeaderMap();
 	    
-	    String dashboardPath = (nativeHeader.get("dashboardPat") != null
-				&& !nativeHeader.get("dashboardPat").toString().isEmpty()) ? nativeHeader.get("dashboardPat").toString()
+	    String dashboardPath = (nativeHeader.get("dashboardPath") != null
+				&& !nativeHeader.get("dashboardPath").toString().isEmpty()) ? nativeHeader.get("dashboardPath").toString()
 						: "/";
 		Map map =  new HashMap<String, Object>();
-		map.put(Constant.idSession, id);
-		map.put(Constant.dashBoard, StringUtil.getValueByPattern(dashboardPath));
-		map.put(Constant.userName, user.getName());
-		map.put(Constant.registerDate, DateUtil.getSystemTimestamp());
+		map.put(Constantes.idSession, id);
+		map.put(Constantes.dashBoard, StringUtil.getValueByPattern(dashboardPath));
+		map.put(Constantes.userName, user.getName());
+		map.put(Constantes.registerDate, DateUtil.getSystemTimestamp());
 		
 		integrationService.saveSessionSocket(map);
 	}

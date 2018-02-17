@@ -78,6 +78,8 @@ public class PopulateSettlement1 extends PopulateCollection {
 		preExecutionsMap.put(Constant.Fields.SCRIPT+4, script4);
 		String script5 = this.getScript(folder + beforeFolder + "script5.sql");
 		preExecutionsMap.put(Constant.Fields.SCRIPT+5, script5);
+		preExecutionsMap.put(Constant.Fields.DATASOURCE_NAME, "dbWari");
+
 		documentSpout.put("preExecutions", preExecutionsMap);
 		documentSpout.put(Constant.Fields.INITIALIZE_SCRIPT, false);
 		documentSpout.put("streamId", "settlementStream");
@@ -116,7 +118,6 @@ public class PopulateSettlement1 extends PopulateCollection {
 		String scriptComparator = this.getScript(folder + raw + "ComparatorReader.sql"); 
 		comparatorProcess.put(Constant.Fields.SCRIPT , scriptComparator);
 		comparatorProcess.put(Constant.Fields.SCRIPT_TYPE , Constant.Fields.SQL);
-		/** Seteo de fields y parametros del ComparatorBolt**/
 		comparatorProcess.put("outputFields", getFieldsComparator());
 		comparatorProcess.put("paramsColumns", getParametersComparator());
 		comparatorProcess.put("columnFieldsMap", getColumnFieldsComparator());
@@ -201,9 +202,7 @@ public class PopulateSettlement1 extends PopulateCollection {
 		writerExecutor.put(Constant.OPERATION_TYPE , Constant.OPERATION_TYPE_WRITER );
 		writerExecutor.put(Constant.IMPLEMENTATION_TYPE , Constant.IMPLEMENTATION_WRITER_TYPE_WS);
 		
-		/**
-		 *  parametros de conexion donde va a escribir
-		 */
+		
 		Map communication1 = new HashMap<String, String>();		
 		communication1.put(Constant.Fields.URL, "http://localhost:8080");
 		communication1.put("uri", "/process/streaming/");

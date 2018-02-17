@@ -4,7 +4,9 @@ import java.security.Principal;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.messaging.Message;
@@ -32,7 +34,10 @@ public class WebSocketConfig extends AbstractSessionWebSocketMessageBrokerConfig
 		implements WebSocketConfigurer {
 
 	private static final Logger LOG = LoggerFactory.getLogger(WebSocketConfig.class);
-
+	
+    @Autowired
+    private Environment env;
+	   
 	@SuppressWarnings("deprecation")
 	@Override
 	public void configureClientInboundChannel(ChannelRegistration registration) {
@@ -75,7 +80,9 @@ public class WebSocketConfig extends AbstractSessionWebSocketMessageBrokerConfig
 	@Override
 	public void configureStompEndpoints(StompEndpointRegistry registry) {
 
-		registry.addEndpoint("/gs-guide-websocket").setAllowedOrigins("http://localhost:8080")
+		StringBuilder _sbUrl = new StringBuilder();
+		_sbUrl.append("http://").append(env.getProperty("server.url")).append(":").append(env.getProperty("server.port"));
+		registry.addEndpoint("/gs-guide-websocket").setAllowedOrigins("*")
 				.addInterceptors(new LoggerHandshakeInterceptor());
 
 	}
