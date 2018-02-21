@@ -58,7 +58,7 @@ public class FixedKpiTopologyTest  implements TopologySource {
 	public static final String LOGIC_STREAM = "LOGIC_STREAM";
 	
     private static final Integer NUM_WORKERS=1;
-	private static final Integer NUM_TASKS=10;
+	private static final Integer NUM_TASKS=1;
 	private ConnectionProvider connectionProviderTarget;
 	private ConnectionProvider connectionProviderSource;
     
