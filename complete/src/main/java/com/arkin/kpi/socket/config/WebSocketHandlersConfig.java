@@ -7,6 +7,12 @@ import org.springframework.session.ExpiringSession;
 
 import com.arkin.kpi.socket.service.IntegrationService;
 
+/**
+ * 
+ * @author jalor
+ *
+ * @param <S>
+ */
 @Configuration
 public class WebSocketHandlersConfig<S extends ExpiringSession> {
 	

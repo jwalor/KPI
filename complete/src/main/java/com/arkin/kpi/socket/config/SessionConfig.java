@@ -28,6 +28,7 @@ public class SessionConfig {
     @Bean
     public MapSessionRepository mapSessionRepository() {
         MapSessionRepository sessionRepository = new MapSessionRepository();
+        LOGGER.info(" ::::: Setting Max Inactive Interval in Seconds: " + maxInactiveIntervalInSeconds);
         sessionRepository.setDefaultMaxInactiveInterval(maxInactiveIntervalInSeconds);
         return sessionRepository;
     }

@@ -151,7 +151,7 @@ public class Constantes {
 		
 		/* Querys Dashboard */
 		
-		public static final String SELECT_DASHBOARD_KPIS_BY_TABLE = " select distinct dbo.path_dashboard,kpc.id_kpi_component_pk, kpc.kpi_name "
+		public static final String SELECT_DASHBOARD_KPIS_BY_TABLE = " select distinct dbo.path_dashboard,dkp.id_dashboard_kpi_pk as id_kpi_component_pk, kpc.kpi_name "
 				+ " from " + TABLES_NAME.INTEGRATION_TABLE + " itb " 
 				+ " inner join " + TABLES_NAME.INTEGRATION_TABLE_COLUMN + " itc " 
 				+ " 	on itb.id_integration_table_pk = itc.id_integration_table_fk and itb.table_name =:tableTarget "

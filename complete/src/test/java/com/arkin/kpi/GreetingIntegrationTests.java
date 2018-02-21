@@ -40,8 +40,12 @@ import org.springframework.web.socket.sockjs.client.Transport;
 import org.springframework.web.socket.sockjs.client.WebSocketTransport;
 
 import com.arkin.kpi.socket.config.Greeting;
-import com.arkin.kpi.socket.config.HelloMessage;
 
+/**
+ * 
+ * @author jalor
+ *
+ */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class GreetingIntegrationTests {
@@ -67,7 +71,6 @@ public class GreetingIntegrationTests {
         List<Transport> transports = new ArrayList<>();
         transports.add(new WebSocketTransport(new StandardWebSocketClient()));
         this.sockJsClient = new SockJsClient(transports);
-        SimpMessageSendingOperations d;
         this.stompClient = new WebSocketStompClient(sockJsClient);
         this.stompClient.setMessageConverter(new MappingJackson2MessageConverter());
     }
@@ -102,7 +105,7 @@ public class GreetingIntegrationTests {
                     }
                 });
                 try {
-                    session.send("/app/hello", new HelloMessage("Spring"));
+                    session.send("/app/hello", null/*new HelloMessage("Spring")*/);
                 } catch (Throwable t) {
                     failure.set(t);
                     latch.countDown();
@@ -182,9 +185,6 @@ public class GreetingIntegrationTests {
     
     private MessageHeaders createHeaders(String sessionId, MethodParameter returnType) {
 		SimpMessageHeaderAccessor headerAccessor = SimpMessageHeaderAccessor.create(SimpMessageType.MESSAGE);
-//		if (getHeaderInitializer() != null) {
-//			getHeaderInitializer().initHeaders(headerAccessor);
-//		}
 		if (sessionId != null) {
 			headerAccessor.setSessionId(sessionId);
 		}

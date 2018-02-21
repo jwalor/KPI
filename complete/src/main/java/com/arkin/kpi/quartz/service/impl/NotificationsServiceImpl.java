@@ -263,7 +263,7 @@ public class NotificationsServiceImpl implements NotificationsService {
 					sessionsSockets.add(sessionSocket);
 				}else {
 					if(isMeetRule) {
-						LOGGER.error("FallÃ³ envio de notificaciÃ³n " + "\n NotificaciÃ³n: " 
+						LOGGER.error("Falló envio de notificación " + "\n Notificación: " 
 								+ ruleNotif.getNotificationName() +  "\n Regla : " + ruleNotif.getIdRulePk() + "-" + ruleNotif.getRuleName());	
 					}
 				}

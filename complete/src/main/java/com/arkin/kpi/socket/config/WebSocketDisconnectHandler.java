@@ -12,6 +12,12 @@ import com.arkin.kpi.socket.service.IntegrationService;
 import com.arkin.kpi.socket.util.Constantes;
 import com.arkin.kpi.socket.util.DateUtil;
 
+/**
+ * 
+ * @author jalor
+ *
+ * @param <S>
+ */
 @SuppressWarnings({"unchecked" , "rawtypes" })
 public class WebSocketDisconnectHandler<S> implements ApplicationListener<SessionDisconnectEvent> {
 

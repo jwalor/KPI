@@ -17,6 +17,12 @@ import com.arkin.kpi.socket.util.Constantes;
 import com.arkin.kpi.socket.util.DateUtil;
 import com.arkin.kpi.socket.util.StringUtil;
 
+/**
+ * 
+ * @author jalor
+ *
+ * @param <S>
+ */
 @SuppressWarnings({"unchecked","rawtypes"})
 public class WebSocketConnectHandler<S> implements ApplicationListener<SessionConnectEvent> {
 	

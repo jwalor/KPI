@@ -60,17 +60,4 @@ public class IntegrationDaoImpl implements IntegrationDao{
 		jdbcTemplate.update(_sql, parameters, keyHolder, new String[]{"id"});
 	}
 	
-	/**
-	 * 
-	 * CREATE TABLE IF NOT EXISTS  session_socket 
-		(id  numeric NOT NULL  DEFAULT NEXTVAL('session_socket_id_seq'),
-		 user_name VARCHAR(500) NOT NULL ,
-		 id_session VARCHAR(500) NOT NULL,
-		 dashboard_path VARCHAR(500) NOT NULL ,		
-		 register_date					timestamp ,
-		 update_date					timestamp ,
-		 state							integer DEFAULT 1,
-		 CONSTRAINT id_pk_ss PRIMARY KEY(id));		
-	 */
-
 }

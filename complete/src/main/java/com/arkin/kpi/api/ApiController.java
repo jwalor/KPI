@@ -27,8 +27,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.arkin.kpi.quartz.service.SessionDashboardService;
-import com.arkin.kpi.socket.config.Greeting;
-import com.arkin.kpi.socket.config.HelloMessage;
 import com.arkin.kpi.socket.service.IntegrationService;
 import com.arkin.kpi.socket.util.JsonUtils;
 import com.arkin.kpi.socket.util.UtilException;
@@ -51,68 +49,10 @@ public class ApiController {
 	
 	@Autowired
 	IntegrationService integrationService;
-
-	@MessageMapping("/hello")
-    @SendTo("/topic/greetings")
-    public Greeting greeting(HelloMessage message,MessageHeaders messageHeaders/*, Principal user*/) throws Exception {
-        Thread.sleep(1000); // simulated delay
-        
-        Greeting text = new Greeting("jalor");
-        
-        Map<String, Object> map = new HashMap<>();
-		map.put(MessageHeaders.CONTENT_TYPE, MimeTypeUtils.APPLICATION_JSON);
-		
-		SimpMessageHeaderAccessor headerAccessor = SimpMessageHeaderAccessor.create(SimpMessageType.MESSAGE);
-		headerAccessor.setSessionId("1");
-		headerAccessor.setLeaveMutable(true);
-		this.brokerMessagingTemplate.convertAndSendToUser("1", "/queue/search", text , headerAccessor.getMessageHeaders());
-
-        System.out.println("jalor");
-        
-        
-        return new Greeting("Hello, " + message.getName() + "!");
-    }
-    
-	@MessageMapping("/search") 
-    @SendToUser//(destinations="/topic/greetings", broadcast=false)
-    public String search( HelloMessage message,MessageHeaders messageHeaders) {
-        return new String("Hello, "+ "!");
-    } 
-	
-	@MessageMapping("/queue/search") 
-	@SendToUser("/queue/search") //(destinations="/topic/greetings", broadcast=false)
-    public String search1(@Payload String xxx) {
-		
-        return new String("Hello, "+ "!");
-    } 
-	
-	@RequestMapping(value="/process/streaming/{sessionId}/{kpiId}",
-			method=RequestMethod.POST,produces={MimeTypeUtils.APPLICATION_JSON_VALUE})
-	public ResponseEntity<?> processTuple(
-			@PathVariable("sessionId") String sessionId,
-			@PathVariable("kpiId") String kpiId) {
-		
-		Map<String, Object> params = new HashMap<String, Object>();
-		params.put(sessionId, sessionId);
-		HttpHeaders responseHeaders = new HttpHeaders();
-
-		ResponseEntity<String> response =  new ResponseEntity<String>("Hello World", responseHeaders, HttpStatus.OK); 
-		
-		integrationService.getIntegrationTableCount();
-		
-		Greeting text = new Greeting("jalor");
-		SimpMessageHeaderAccessor headerAccessor = SimpMessageHeaderAccessor.create(SimpMessageType.MESSAGE);
-		headerAccessor.setSessionId(sessionId);
-		headerAccessor.setLeaveMutable(true);
-		this.brokerMessagingTemplate.convertAndSendToUser(sessionId, "/queue/search", text , headerAccessor.getMessageHeaders());
-		
-		LOGGER.info("response: {}",response.getBody());
-		return response;
-	} 
-	
+ 
 	@RequestMapping(value="/process/streaming",
 			method=RequestMethod.POST,  consumes = MediaType.APPLICATION_JSON_VALUE , produces={MimeTypeUtils.APPLICATION_JSON_VALUE})
-	public ResponseEntity<?> processTuple1(@RequestBody String input) throws IOException {
+	public ResponseEntity<?> processTuple(@RequestBody String input) throws IOException {
 		Map  mapEntity	 = JsonUtils.jsonToMap((String)input);
 		Map<String,Object> dashboards = null;
 		

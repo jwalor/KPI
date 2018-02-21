@@ -6,7 +6,6 @@ import static org.ehcache.config.builders.CacheManagerBuilder.newCacheManager;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
 import org.ehcache.Cache;
 import org.ehcache.CacheManager;
 import org.ehcache.config.Configuration;
@@ -16,8 +15,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.boot.web.support.SpringBootServletInitializer;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -28,7 +25,7 @@ import com.arkin.kpi.quartz.model.to.DashboardKpiTo;
 @EnableCaching
 @SpringBootApplication
 @EnableAsync
-public class Application  extends SpringBootServletInitializer {
+public class Application   {
 	
 	    
 	private static final Logger LOGGER = LoggerFactory.getLogger(Application.class);	    
@@ -72,9 +69,6 @@ public class Application  extends SpringBootServletInitializer {
         };
     }
     
-    @Override
-    protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
-        return application.sources(Application.class);
-    }
+
     
 }
