@@ -48,7 +48,7 @@ public class SessionDashboardServiceImpl implements SessionDashboardService {
 				Map<String, Object> kpis = new HashMap<>();
 
 				for (DashboardKpiTo dash : dashboards) {
-					if (sessionSocket.getDashboardPath().equals(dash.getPathDashboard())) {
+					if (sessionSocket.getDashboardPath().equalsIgnoreCase(dash.getPathDashboard())) {
 						kpis.put(dash.getKpiName(), dash.getIdKpiComponent());
 					}
 				}
