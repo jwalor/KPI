@@ -1,7 +1,9 @@
 package com.arkin.kpi;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -11,6 +13,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import com.arkin.kpi.socket.util.JsonUtils;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -75,5 +79,18 @@ public class KpiQuartzApplicationTests {
 
 		
 	}
-
+	
+	@Test
+	public void test() {
+		
+		Map map =  new HashMap();
+		map.put("notificationId", "ww");
+		map.put("notificationMessage","ww");
+		map.put("notificationType", "ww");
+		
+		List list = new ArrayList<>();
+		list.add(map);
+		
+		System.out.println(JsonUtils.toJson(list));
+	}
 }

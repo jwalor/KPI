@@ -6,6 +6,8 @@ import static org.ehcache.config.builders.CacheManagerBuilder.newCacheManager;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.Executor;
+
 import org.ehcache.Cache;
 import org.ehcache.CacheManager;
 import org.ehcache.config.Configuration;
@@ -19,6 +21,7 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import com.arkin.kpi.quartz.model.to.DashboardKpiTo;
 
@@ -69,6 +72,16 @@ public class Application   {
         };
     }
     
-
+    
+  @Bean
+  public Executor asyncExecutor() {
+      ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+      executor.setCorePoolSize(2);
+      executor.setMaxPoolSize(100);
+      executor.setQueueCapacity(500);
+      executor.setThreadNamePrefix("SendEmail-");
+      executor.initialize();
+      return executor;
+  }
     
 }

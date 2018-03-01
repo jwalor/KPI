@@ -18,7 +18,8 @@ public class RulesNotificationsTo {
 	private Integer notificationState;
 	private Integer idRulePk;
 	private String ruleName;
-		
+	private Integer indView = 0 ;
+	
 	public RulesNotificationsTo(){
 	}
 	
@@ -148,6 +149,14 @@ public class RulesNotificationsTo {
 
 	public void setRuleName(String ruleName) {
 		this.ruleName = ruleName;
+	}
+	
+	public Integer getIndView() {
+		return indView;
+	}
+
+	public void setIndView(Integer indView) {
+		this.indView = indView;
 	}
 
 	@Override

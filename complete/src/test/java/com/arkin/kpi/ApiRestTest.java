@@ -36,8 +36,8 @@ public class ApiRestTest {
  	 public void callMethod2() throws Exception {
     	  
     	
-          String userName = "[77admin88888888888888888]";//"User clientId=23421. Some more text clientId=33432. This clientNum=100";//"[admin]";
-          Pattern pattern = Pattern.compile("([a-zA-Z]+)([0-9]*)");
+          String userName = "[admin88888888888888888]";//"User clientId=23421. Some more text clientId=33432. This clientNum=100";//"[admin]";
+          Pattern pattern = Pattern.compile("(([/]*)[a-zA-Z]+)([0-9]*)");
           Matcher matcher = pattern.matcher(userName);
           if (matcher.find())
           {

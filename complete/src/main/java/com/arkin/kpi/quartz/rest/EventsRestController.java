@@ -8,7 +8,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -31,15 +33,16 @@ public class EventsRestController {
 	@Autowired
 	private UtilException utilException;
 	
-	@RequestMapping(value="getRulesNotificationsByEventsAndTable",method = RequestMethod.POST)
+	@RequestMapping(value="getRulesNotificationsByEventsAndTable",method = RequestMethod.POST , consumes = MediaType.APPLICATION_JSON_VALUE ,
+			produces={MimeTypeUtils.APPLICATION_JSON_VALUE})
 	private ResponseEntity<Map<String, Object>> getRulesNotificationsByEventsAndTable(@RequestBody Map<String, String> params){
-		Map<String, Object> sessions = new HashMap<>();
+		
 		try {
-			sessions = notificationsService.getRulesNotificationsByEventsAndTable(params);
+			notificationsService.getRulesNotificationsByEventsAndTable(params);
 		} catch (Exception e) {
 			LOGGER.error(utilException.getSpecificException(e));
 		}
-		return new ResponseEntity<>(sessions, HttpStatus.OK);
+		return ResponseEntity.ok().build();
 	}
 	
 	@RequestMapping(value="getNotificationLoggerByUser",method = RequestMethod.POST)

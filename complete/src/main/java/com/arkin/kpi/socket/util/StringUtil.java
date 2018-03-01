@@ -13,7 +13,7 @@ import org.apache.commons.lang3.StringUtils;
  */
 public final class StringUtil extends StringUtils {
 	
-	public static String regexSocket = "([a-zA-Z]+)([0-9]*)";
+	public static String regexSocket = "(([/]*)[a-zA-Z]+)([0-9]*)";
 
 	private StringUtil() {
 	}

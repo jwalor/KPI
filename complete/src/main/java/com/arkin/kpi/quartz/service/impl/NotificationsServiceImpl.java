@@ -11,17 +11,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.arkin.kpi.component.service.ComponentNotification;
 import com.arkin.kpi.quartz.dao.NotificationsDao;
 import com.arkin.kpi.quartz.job.config.JobProperties;
 import com.arkin.kpi.quartz.model.to.EmailTemplateTo;
 import com.arkin.kpi.quartz.model.to.NotificationLoggerTo;
 import com.arkin.kpi.quartz.model.to.NotificationTo;
 import com.arkin.kpi.quartz.model.to.RulesNotificationsTo;
-import com.arkin.kpi.quartz.model.to.RulesResultTo;
 import com.arkin.kpi.quartz.model.to.ScheduleTo;
 import com.arkin.kpi.quartz.model.to.SessionSocketTo;
 import com.arkin.kpi.quartz.model.to.UsersDestinationsTo;
@@ -33,6 +32,11 @@ import com.arkin.kpi.socket.util.Constantes;
 import com.arkin.kpi.socket.util.UtilException;
 
 
+/**
+ * 
+ * @author jalor
+ *
+ */
 @Service
 @Transactional
 public class NotificationsServiceImpl implements NotificationsService {
@@ -47,6 +51,9 @@ public class NotificationsServiceImpl implements NotificationsService {
 
 	@Autowired
 	private UtilException utilException;
+	
+	@Autowired
+	private ComponentNotification componentNotification;
 	
 	@Value("${path.users.active}")
 	private String pathUserActive;
@@ -147,102 +154,63 @@ public class NotificationsServiceImpl implements NotificationsService {
 
 	@Override
 	@Transactional
-	public Map<String, Object> getRulesNotificationsByEventsAndTable(Map<String, String> params) {
+	public void getRulesNotificationsByEventsAndTable(Map<String, String> params) {
 		
-		Map<String, Object> sessionSocketsMap = new HashMap<>();
 		try {
+			
 			List<RulesNotificationsTo> rules = new ArrayList<RulesNotificationsTo>();
 
 			rules = notificationsDao.getRulesNotificationsByEventsAndTable(params);
 
 			if (rules.size() > 0) {
-				List<List<SessionSocketTo>> sessionSockets = verifyRulesAndNotify(rules);
-				sessionSocketsMap.put("sessionsSockets", sessionSockets);
+
+				/////////////////////////////////////////////////////////////////////////////////////////
+				executingRulesAndNotifications(rules);
+				/////////////////////////////////////////////////////////////////////////////////////////
 			}
 		} catch (Exception e) {
 			LOGGER.error(utilException.getSpecificException(e));
 		}
-		return sessionSocketsMap;
+		
 	}
 	
 	@Override
 	@Transactional
-	public Map<String, Object> getRulesNotificationsBySchedule(Map<String, Integer> params) {
+	public void getRulesNotificationsBySchedule(Map<String, Integer> params) {
 		
-		Map<String, Object> sessionSocketsMap = new HashMap<>();
 		try {
 			List<RulesNotificationsTo> rules = new ArrayList<RulesNotificationsTo>();
 
 			rules = notificationsDao.getRulesNotificationsBySchedule(params);
 
 			if (rules.size() > 0) {
-				List<List<SessionSocketTo>> sessionSockets = verifyRulesAndNotify(rules);
-				sessionSocketsMap.put("sessionsSockets", sessionSockets);
+				
+				/////////////////////////////////////////////////////////////////////////////////////////
+				executingRulesAndNotifications(rules);
+				/////////////////////////////////////////////////////////////////////////////////////////	
+				
 			}
 		} catch (Exception e) {
 			LOGGER.error(utilException.getSpecificException(e));
 		}
-		return sessionSocketsMap;
 	}
 	
+	/**
+	 *  Method allow verify and send each  notification rule.
+	 * @param rules
+	 * @return
+	 */
 	@Transactional
-	private List<List<SessionSocketTo>> verifyRulesAndNotify(List<RulesNotificationsTo> rules) {
+	private void  executingRulesAndNotifications(List<RulesNotificationsTo> rules) {
 		
-		List<List<SessionSocketTo>> sessionsSockets = new ArrayList<>();
 		try {
 			
 			List<CompletableFuture<Map<String,Object>>> completableFutures = new ArrayList<CompletableFuture<Map<String,Object>>>();
 			
 			for (RulesNotificationsTo ruleNotification : rules) {
 				
-				CompletableFuture<Map<String,Object>> future = verifyRulesAndNotifyByAsync(ruleNotification);
+				CompletableFuture<Map<String,Object>> future = componentNotification.verifyRulesAndNotifyByAsync(ruleNotification);
 				completableFutures.add(future);
-
-				/*String valueToNotify = ruleNotification.getValueToNotify();
-				
-				String query = " select ";
-				
-				query = query + ruleNotification.getRuleFormule() + " as rules_result " + " from "
-						+ ruleNotification.getTableName();								
-				
-				List<RulesResultTo> rulesResult = notificationsDao.getRulesResult(query);
-				
-				for (RulesResultTo result : rulesResult) {
-					
-					if (result.getResult().compareTo(valueToNotify) == 0) {
-						
-						Map<String, Long> params_users = new HashMap<String, Long>();
-						params_users.put("idNotificationProcess", ruleNotification.getLngNotificationProcessPk());
-						List<UsersDestinationsTo> users = getUsersDestinationsByNotifications(params_users);
-						List<SessionSocketTo> sessionSocket = new ArrayList<>();
-						
-						if (ruleNotification.getNotificationType().equals(NotificationType.EMAIL.getCode())) {	
-							
-							sendToNotifyByEmail(ruleNotification, valueToNotify, users);
-							saveNotificationLogger(ruleNotification, users, NotificationType.EMAIL.getCode());								
-							
-						} else if (ruleNotification.getNotificationType().equals(NotificationType.EMAIL_APLICATION.getCode())) {
-							
-							sendToNotifyByEmail(ruleNotification, valueToNotify, users);
-							saveNotificationLogger(ruleNotification,users, NotificationType.EMAIL.getCode());
-							saveNotificationLogger(ruleNotification,users, NotificationType.APLICATION.getCode());
-							
-							sessionSocket = getUsersSessionActive(users);								
-							
-							//Incluir codigo huacho para envio de push app
-							
-						} else if (ruleNotification.getNotificationType().equals(NotificationType.APLICATION.getCode())) {
-							
-							saveNotificationLogger(ruleNotification,users, NotificationType.APLICATION.getCode());
-							
-							sessionSocket = getUsersSessionActive(users);
-							
-							//Incluir codigo huacho para envio de push app
-						}
-						System.out.println(sessionSocket);
-						break;
-					}
-				}*/
 			}
 			
 			CompletableFuture.allOf( completableFutures.toArray((new CompletableFuture[completableFutures.size()]))).join();
@@ -255,17 +223,20 @@ public class NotificationsServiceImpl implements NotificationsService {
 				mapFuture = future.get();
 				
 				boolean isSend = Boolean.parseBoolean(mapFuture.get("isSend").toString());
-				List<SessionSocketTo> sessionSocket = (List<SessionSocketTo>) mapFuture.get("sessionSocket");
 				boolean isMeetRule = Boolean.parseBoolean(mapFuture.get("isMeetRule").toString());
 				RulesNotificationsTo ruleNotif = (RulesNotificationsTo) mapFuture.get("ruleNotification");
-							
-				if(isSend) {
-					sessionsSockets.add(sessionSocket);
-				}else {
-					if(isMeetRule) {
-						LOGGER.error("Falló envio de notificación " + "\n Notificación: " 
-								+ ruleNotif.getNotificationName() +  "\n Regla : " + ruleNotif.getIdRulePk() + "-" + ruleNotif.getRuleName());	
-					}
+				boolean allSeen = mapFuture.get("allSeen") !=null? Boolean.parseBoolean(mapFuture.get("allSeen").toString()):false;
+				
+				if (allSeen) {
+					LOGGER.info("No se envió " + "\n Notificación: " 
+							+ ruleNotif.getNotificationName() +  "\n Regla : " + ruleNotif.getIdRulePk() + "-" + ruleNotif.getRuleName()
+							+ " debido a que los usuarios asociados ya revisaron las notficaciones.");
+					break;
+				}
+				
+				if(!isSend && isMeetRule) {
+					LOGGER.error("Falló envío de notificación " + "\n Notificación: " 
+							+ ruleNotif.getNotificationName() +  "\n Regla : " + ruleNotif.getIdRulePk() + "-" + ruleNotif.getRuleName());	
 				}
 			}
 						
@@ -273,113 +244,8 @@ public class NotificationsServiceImpl implements NotificationsService {
 			LOGGER.error(utilException.getSpecificException(e));
 		}		
 		
-		return sessionsSockets;
 	}	
 	
-	@Async
-	private CompletableFuture<Map<String, Object>> verifyRulesAndNotifyByAsync(RulesNotificationsTo ruleNotification){
-		
-		Map<String,Object> map = new HashMap<>();
-		
-		String valueToNotify = ruleNotification.getValueToNotify();
-		
-		String query = " select ";
-		
-		query = query + ruleNotification.getRuleFormule() + " as rules_result " + " from "
-				+ ruleNotification.getTableName();	
-		
-		boolean isMeetRule = false;
-		map.put("ruleNotification", ruleNotification);
-		
-		try {
-			
-			List<RulesResultTo> rulesResult = notificationsDao.getRulesResult(query);
-			
-			List<SessionSocketTo> sessionSocket = new ArrayList<>();
-			
-			for (RulesResultTo result : rulesResult) {
-								
-				if (result.getResult().compareTo(valueToNotify) == 0) {
-					
-					isMeetRule = true;
-					
-					Map<String, Long> params_users = new HashMap<String, Long>();
-					params_users.put("idNotificationProcess", ruleNotification.getLngNotificationProcessPk());
-					List<UsersDestinationsTo> users = getUsersDestinationsByNotifications(params_users);
-					
-					
-					if (ruleNotification.getNotificationType().equals(NotificationType.EMAIL.getCode())) {	
-						
-						sendToNotifyByEmail(ruleNotification, valueToNotify, users);
-						saveNotificationLogger(ruleNotification, users, NotificationType.EMAIL.getCode());								
-						
-					} else if (ruleNotification.getNotificationType().equals(NotificationType.EMAIL_APLICATION.getCode())) {
-						
-						sendToNotifyByEmail(ruleNotification, valueToNotify, users);
-						saveNotificationLogger(ruleNotification,users, NotificationType.EMAIL.getCode());
-						saveNotificationLogger(ruleNotification,users, NotificationType.APLICATION.getCode());
-						
-						sessionSocket = getUsersSessionActive(users);								
-						
-						//Incluir codigo huacho para envio de push app
-						
-					} else if (ruleNotification.getNotificationType().equals(NotificationType.APLICATION.getCode())) {
-						
-						saveNotificationLogger(ruleNotification,users, NotificationType.APLICATION.getCode());
-						
-						sessionSocket = getUsersSessionActive(users);
-						
-						//Incluir codigo huacho para envio de push app
-					}
-					System.out.println(sessionSocket);
-					break;
-				}
-			}
-			
-			map.put("isSend", Boolean.TRUE);
-			map.put("sessionSocket", sessionSocket);
-			map.put("isMeetRule", isMeetRule);
-			
-			return CompletableFuture.completedFuture(map); 
-			
-		} catch (Exception e) {
-			LOGGER.error(utilException.getSpecificException(e));
-			map.put("isSend", Boolean.FALSE);
-			map.put("sessionSocket", null);
-			map.put("isMeetRule", isMeetRule);
-			return CompletableFuture.completedFuture(map); 
-		}
-	}
-	
-	@Override
-	public List<UsersDestinationsTo> getUsersDestinationsByNotifications(Map<String, Long> params) {
-		return notificationsDao.getUsersDestinationsByNotifications(params);
-	}
-	
-	private List<SessionSocketTo> getUsersSessionActive(List<UsersDestinationsTo> users) {
-		
-		List<SessionSocketTo> usersActives = new ArrayList<>();
-		
-		for(UsersDestinationsTo userDestination : users) {
-			
-			Map <String, String> paramsUser = new HashMap<>();
-			paramsUser.put("userName", userDestination.getUserName());
-			paramsUser.put("path", pathUserActive);
-			
-			List<SessionSocketTo> sessionSockets = getSessionSocketByUser(paramsUser);
-			if(sessionSockets.size() > 0) {
-				usersActives.add(sessionSockets.get(0));
-			}			
-		}
-		
-		return usersActives;
-	}
-	
-	@Override
-	public List<SessionSocketTo> getSessionSocketByUser(Map<String,String> params) {
-		return notificationsDao.getSessionSocketByUser(params);
-	}
-
 	@Override
 	public List<NotificationLoggerTo> getNotificationLoggerByUser(Map<String, String> params) {
 		return notificationsDao.getNotificationLoggerByUser(params);
