@@ -39,6 +39,13 @@ public class Constantes {
 	
 	}
 	
+	public static abstract class  NotificationStatus {
+		
+		public static final Integer ERROR_COLA = -1;
+		public static final Integer ERROR_EMAIL = 0;
+		public static final Integer SUCCESSFUL = 1;
+	}
+	
 	public static abstract class  NotificationLogger {
 	
 		public final static String ID_NOTIFICATION_PROCESS = "idNotificationProcess";
@@ -51,6 +58,7 @@ public class Constantes {
 		public final static String DESTINATION_TYPE = "destinationType";
 		public final static String ALERT_TYPE = "alertType";
 		public final static String NOTIFICATION_STATE = "notificationState";
+		public final static String IND_VIEW = "indView";
 		public final static String REGISTER_DATE = "registerDate";
 		public final static String LAST_MODIFY_DATE = "lastModifyDate";
 		public final static String LAST_MODIFY_APP = "lastModifyApp";
@@ -119,7 +127,7 @@ public class Constantes {
 				+ " 	on  ivt.id_integration_table_fk = itb.id_integration_table_pk "
 				+ " inner join " + TABLES_NAME.PARAMETER_TABLE + " pt "
 				+ " 	on ru.operator_ref = pt.parameter_table_pk and pt.parameter_state = " + GenericStateType.ACTIVE.getCode()
-				+ " where itb.table_name =:tableName ";
+				+ " where itb.table_name =:tableTarget ";
 		
 		public static final String SELECT_RULES_NOTIFICATIONS_BYSCHEDULE = " select np.id_notification_process_pk,tb.table_name,ru.rule_formule, "
 				+ " co.column_name,ru.comparator_ref,ru.value_return_ref, pt.parameter_name, ru.value_notification, "
@@ -186,11 +194,11 @@ public class Constantes {
 		
 		public static final String INSERT_INTO_NOTIFICATION_LOGGER = "INSERT INTO " + TABLES_NAME.NOTIFICATION_LOGGER +"(id_notification_logger_pk,id_notification_process_fk,id_user_fk,notification_name," 
 				+ " notification_subject,notification_message,notification_type,notification_date,destination_type, " 
-				+ " alert_type,notification_state,register_date,last_modify_date,last_modify_app, " 
+				+ " alert_type,notification_state,ind_view,register_date,last_modify_date,last_modify_app, " 
 				+ " last_modify_user,last_modify_ip) "
 				+ " VALUES(NEXTVAL('SQ_ID_NOTIFICATION_LOGGER_PK'), :idNotificationProcess, :idUser, :notificationName, "
 				+ " :notificationSubject, :notificationMessage, :notificationType, :notificationDate, :destinationType, "
-				+ " :alertType, :notificationState, :registerDate, :lastModifyDate, :lastModifyApp,"
+				+ " :alertType, :notificationState, :indView , :registerDate, :lastModifyDate, :lastModifyApp,"
 				+ " :lastModifyUser, :lastModifyIp )"; 
 		
 		/* NotificationLogger*/
