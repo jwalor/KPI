@@ -1,5 +1,10 @@
 package com.pradera.stream.service;
 
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+
+import org.apache.http.client.ClientProtocolException;
+
 import com.pradera.stream.model.OperationPayload;
 
 
@@ -10,6 +15,6 @@ import com.pradera.stream.model.OperationPayload;
  */
 public interface OperationWriterStrategy {
 
-	void write(OperationPayload operationPayload);
+	void write(OperationPayload operationPayload) throws ClientProtocolException, IOException ,UnsupportedEncodingException;
 
 }

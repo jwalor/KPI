@@ -14,18 +14,15 @@ public class OperationTransformerJavaScriptImpl implements OperationTransformerS
 
 	private static final Log LOG = LogFactory.getLog(OperationTransformerJavaScriptImpl.class);
 
-	public void transform(OperationPayload operationPayload) {
-		LOG.info("---- ---- Transforming. ");
-		LOG.info("---- ---- OperationTransformerJavaScriptImpl in :" + operationPayload.getPayload());
-		
+	public void transform(OperationPayload operationPayload) throws Exception {
+		LOG.debug("---- ---- Transforming. ");
+		LOG.debug("---- ---- OperationTransformerJavaScriptImpl in :" + operationPayload.getPayload());
 		
 		try {
 			Map currentOperation= operationPayload.getConfigOperationCurrent();
 			JavaScriptUtil.executeJS(Constant.JAVASCRIPT_FUNCTION_NAME_DEFAULT,""+currentOperation.get(Constant.Fields.SCRIPT), operationPayload.getHeader(),operationPayload.getPayload());
 
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
+		}  finally {
 			System.gc();
 		}
 	}

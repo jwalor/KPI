@@ -10,6 +10,6 @@ import com.pradera.stream.model.OperationPayload;
  */
 public interface OperationTransformerStrategy {
 
-	void transform(OperationPayload operationPayload);
+	void transform(OperationPayload operationPayload)  throws Exception;
 
 }
