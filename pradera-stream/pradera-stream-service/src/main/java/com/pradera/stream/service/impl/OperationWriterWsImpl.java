@@ -1,5 +1,7 @@
 package com.pradera.stream.service.impl;
 
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -7,6 +9,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
@@ -23,11 +26,11 @@ public class OperationWriterWsImpl implements OperationWriterStrategy {
 	
 	@SuppressWarnings("unchecked")
 	@Override
-	public void write(OperationPayload operationPayload) {
+	public void write(OperationPayload operationPayload) throws ClientProtocolException, IOException,UnsupportedEncodingException {
 		LOG.info("---- ---- Transforming. ");
 		LOG.info("---- ---- OperationWriterWsImpl in :" + operationPayload.getPayload());
 		
-		try {
+	//	try {
 			Map currentOperation= operationPayload.getConfigOperationCurrent();
 			
 			 ///////////////////////////////////////////////////
@@ -52,11 +55,11 @@ public class OperationWriterWsImpl implements OperationWriterStrategy {
 			 ///////////////////////////////////////////////////
 			 
 			 
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			System.gc();
-		}
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		} finally {
+//			System.gc();
+//		}
 		
 	}
 

@@ -1,9 +1,12 @@
 package com.pradera.stream.service.impl;
 
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.client.ClientProtocolException;
 
 import com.pradera.stream.constant.Constant;
 import com.pradera.stream.model.OperationPayload;
@@ -20,24 +23,24 @@ public class OperationProcessor {
 	private static final Log LOG = LogFactory.getLog(OperationProcessor.class);
 
 	
-	public static void process(OperationPayload operationPayload) {
+	public static void process(OperationPayload operationPayload) throws Exception {
 		
 		
 		Map configOperationMap		= 	operationPayload.getConfigOperationCurrent();
 		String operationType		=	""+configOperationMap.get(Constant.OPERATION_TYPE);
 		String implementationType	=	""+configOperationMap.get(Constant.IMPLEMENTATION_TYPE);
 
-		LOG.info("---- ---- Header Current : "+operationPayload.getHeader());
+		LOG.debug("---- ---- Header Current : "+operationPayload.getHeader());
 		
 		process(operationType,implementationType,operationPayload);
 		
-		LOG.info("---- ---- Payload Final : "+operationPayload.getPayload());
-		LOG.info("---- ---- Header Final : "+operationPayload.getHeader());
+		LOG.debug("---- ---- Payload Final : "+operationPayload.getPayload());
+		LOG.debug("---- ---- Header Final : "+operationPayload.getHeader());
 
 	}
 
 
-	public static void process(String operationType,String implementationType,OperationPayload operationPayload) {
+	public static void process(String operationType,String implementationType,OperationPayload operationPayload) throws Exception {
 		switch (operationType) {
 			case Constant.OPERATION_TYPE_ENRICHER:{
 				switch (implementationType) {
