@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import org.apache.storm.flux.api.TopologySource;
 import org.apache.storm.generated.StormTopology;
+import org.apache.storm.jdbc.bolt.ControlKpiBolt;
 import org.apache.storm.jdbc.bolt.CustomUpsertKpiBolt;
 import org.apache.storm.jdbc.bolt.JdbcInsertBolt;
 import org.apache.storm.jdbc.bolt.JdbcLookupBolt;
@@ -194,10 +195,14 @@ public class FixedKpiTopology  implements TopologySource {
 		
 		TopologyBuilder builder = new TopologyBuilder();
 
-		builder.setSpout(USER_SPOUT, kpiSpout, 1);
+		builder.setSpout(USER_SPOUT, kpiSpout,1);
 		builder.setBolt(LOOKUP_BOLT, kpiComparatorBolt, NUM_TASKS).setNumTasks(NUM_TASKS).shuffleGrouping(USER_SPOUT);
+		builder.setBolt("CONTROL1",  new ControlKpiBolt(), NUM_TASKS).setNumTasks(NUM_TASKS).shuffleGrouping(LOOKUP_BOLT,"CONTROL_STREAM");
+		
 		builder.setBolt(PERSISTANCE_BOLT, kpiPersistentBolt, NUM_TASKS).setNumTasks(NUM_TASKS).shuffleGrouping(LOOKUP_BOLT,NATIVE_STREAM);
 		builder.setBolt(LOGIC_BOLT, new LogicKpiBolt(), NUM_TASKS).setNumTasks(NUM_TASKS).shuffleGrouping(LOOKUP_BOLT,LOGIC_STREAM);
+		
+		builder.setBolt("CONTROL2",  new ControlKpiBolt(), NUM_TASKS).setNumTasks(NUM_TASKS).shuffleGrouping(LOGIC_BOLT,"CONTROL_STREAM");
 		builder.setBolt("UPDATE_BOLT", customUpdateKpiBolt, NUM_TASKS).setNumTasks(NUM_TASKS).shuffleGrouping(LOGIC_BOLT,UPDATE_STREAM);
 		builder.setBolt("INSERT_BOLT", customInsertKpiBolt, NUM_TASKS).setNumTasks(NUM_TASKS).shuffleGrouping(LOGIC_BOLT,INSERT_STREAM);
 		builder.setBolt("RES_API_BOLT1", restApiBolt, NUM_TASKS).setNumTasks(NUM_TASKS).shuffleGrouping(PERSISTANCE_BOLT,"REST_STREAM");

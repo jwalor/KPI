@@ -6,6 +6,7 @@ import java.util.Map;
 import org.apache.storm.jdbc.common.Column;
 import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.tuple.ITuple;
+import org.apache.storm.util.KpiTuple;
 
 /**
  * 
@@ -27,7 +28,7 @@ public interface KpiLookupMapper extends JdbcLookupMapper {
      * @param tuple
      * @return Map with values
      */
-	public Map convertTupleToMap(ITuple tuple);
+	public Map convertTupleToMap(KpiTuple tuple);
 	
 	/**
 	 * 

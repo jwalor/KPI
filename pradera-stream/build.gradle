@@ -93,13 +93,13 @@ dependencies {
          exclude group: 'org.clojure', module: 'clojure'
     }
     
-   /* compile (group: 'com.hazelcast', name: 'hazelcast', version: '3.9.2'){
+   compile (group: 'com.hazelcast', name: 'hazelcast', version: '3.9.2'){
          exclude group: 'org.clojure', module: 'clojure'
     }
     // https://mvnrepository.com/artifact/com.hazelcast/hazelcast-client
 	compile (group: 'com.hazelcast', name: 'hazelcast-client', version: '3.9.2' ){
          exclude group: 'org.clojure', module: 'clojure'
-    }*/
+    }
     
     
 	compile (group: 'org.slf4j', name: 'log4j-over-slf4j', version: '1.6.6'){

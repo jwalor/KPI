@@ -20,8 +20,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Lists;
 import com.pradera.stream.model.CustomColumn;
-import com.pradera.stream.singleton.HikariCPConnectionSingletonSource;
-import com.pradera.stream.singleton.HikariCPConnectionSingletonTarget;
 
 /**
  * This class have added NamedParameterStatement.class for improve 
@@ -45,11 +43,11 @@ public class JdbcClientExt extends JdbcClient {
 		this.queryTimeoutSecs 	= queryTimeoutSecs;
 	}
 	
+	
     @Override
     public void executeInsertQuery(String query, List<List<Column>> columnLists) {
         Connection connection = null;
         try {
-            connection = null;
             connection =  connectionProvider.getConnection();
             
             boolean autoCommit = connection.getAutoCommit();
@@ -147,6 +145,7 @@ public class JdbcClientExt extends JdbcClient {
             closeConnection(connection);
         }
     }
+
     
     /**
      */

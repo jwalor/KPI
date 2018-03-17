@@ -46,6 +46,9 @@ public class DateUtil extends DateUtils {
 		return new Date(System.currentTimeMillis());
 	}
 	
+	public static java.sql.Date getSystemDBDate() {
+		return new java.sql.Date(System.currentTimeMillis());
+	}
 	/**
 	 * @return
 	 */

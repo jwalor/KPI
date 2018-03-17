@@ -21,6 +21,7 @@ import org.bson.conversions.Bson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Maps;
 import com.mongodb.DBRef;
 import com.mongodb.client.model.Filters;
 import com.pradera.stream.constant.Constant;
@@ -41,11 +42,10 @@ public class LogicKpiBolt extends BaseTickTupleAwareRichBolt{
 	private static final long 	serialVersionUID 	= -8783495568069984732L;
 	
 	private static final Logger LOG 				= LoggerFactory.getLogger(LogicKpiBolt.class);
-	private	List<Map>			configOperations	;
 	protected OutputCollector 	collector;
     public static final String  UPDATE_STREAM 		= "UPDATE_STREAM";
     public static final String  INSERT_STREAM 		= "INSERT_STREAM";	
-    
+    private Map<String, Object> logicMaps =  Maps.newHashMap();
     
 	@Override
 	public void prepare(Map stormConf, TopologyContext context,
@@ -71,19 +71,44 @@ public class LogicKpiBolt extends BaseTickTupleAwareRichBolt{
 		Bson 		filter 			= 	Filters.eq("name", _setTopologyName);
 		Document 	topology		=	mongoDBClient.find(filter, "topology");
 		
-		List<DBRef> processes		=	(List)topology.get(Constant.Fields.PROCESSES);	
+		List<DBRef> processes		=	(List)topology.get("bolts");	
+		
 		filter 		= 	Filters.and( Filters.or(
-									 Filters.eq("_id", processes.get(0).getId())
-									 ,Filters.eq("_id", processes.get(1).getId())
-									 ,Filters.eq("_id", processes.get(2).getId())
-									 ,Filters.eq("_id", processes.get(3).getId())
-									 ,Filters.eq("_id", processes.get(4).getId())),
+										 Filters.eq("_id", processes.get(0).getId())
+										 ,Filters.eq("_id", processes.get(1).getId())
+										 ,Filters.eq("_id", processes.get(2).getId())
+										 ,Filters.eq("_id", processes.get(3).getId())
+										 ,Filters.eq("_id", processes.get(4).getId())
+										 ,Filters.eq("_id", processes.get(5).getId())),
 						Filters.eq("name", Constant.StormComponent.LOGIC_BOLT));
 		
-		Document 	process		=	mongoDBClient.find(filter, "process");
-		Document d = (Document) process.get("executors");
+		Document 	process		=	mongoDBClient.find(filter, "bolt");
+		List<Object> 	streamsList	=	(List)process.get("streams");
+		
+		Map	streamMap = null;
+		Map	parametersMap = null;
+		
+		for(int i=0; i< streamsList.size(); i++) {
+			streamMap =  (Map)streamsList.get(i);
+			parametersMap =  Maps.newHashMap();
+			
+			loadingConfigurationOperations(streamMap, parametersMap);
+			
+			logicMaps.put((String)streamMap.get("streamName"), parametersMap);
+		}
+		
+		mongoDBClient.close();
+		this.collector = collector;
+		
+	}
+	
+	private void loadingConfigurationOperations(Map streamMap , Map	parametersMap) {
+		
+		Document d = (Document) streamMap.get("executors");
+		
 		Object[]  executorArray = (Object[]) d.values().toArray();
 		
+		List<Map>	configOperations	;
 		
 		if (!ArrayUtils.isEmpty(executorArray)){
 			configOperations =   new  ArrayList<Map>();
@@ -98,14 +123,10 @@ public class LogicKpiBolt extends BaseTickTupleAwareRichBolt{
 				executor.put(Constant.Fields.SCRIPT, obj.get(Constant.Fields.SCRIPT));
 				configOperations.add(executor);
 			}			
-			
+			parametersMap.put("configOperations",configOperations );
 		}
 		
-		mongoDBClient.close();
-		this.collector = collector;
-		
 	}
-
 
 	@Override
 	protected void process(Tuple tuple) {
@@ -113,19 +134,22 @@ public class LogicKpiBolt extends BaseTickTupleAwareRichBolt{
 		try {
 			
 			LOG.info("----> Processing logic about kpi's implementation on  LogicKpiBolt ---- ");
-			LOG.info("----> Initial time :" + System.currentTimeMillis());
+			LOG.debug("----> Initial time :" + System.currentTimeMillis());
 			
-			OperationPayload operationPayload = (OperationPayload) tuple.getValueByField("Constants.PAYLOAD");
-
+			String _streamId = (String) tuple.getValueByField("streamId");
+			OperationPayload operationPayload = (OperationPayload) tuple.getValueByField("PAYLOAD");		
+			
+			Map upsertKpiMap	  =	(Map) logicMaps.get(_streamId);
+			List<Map>	configOperations = (List<Map>) upsertKpiMap.get("configOperations");
 			for (Map configOperationMap : configOperations) {
 				operationPayload.setConfigOperationCurrent(configOperationMap);
 				OperationProcessor.process(operationPayload);
 				
 			}
 			
-			LOG.info("----> Final time  :" + System.currentTimeMillis());
-			
+			LOG.debug("----> Final time  :" + System.currentTimeMillis());
 			Object result = operationPayload.getHeader().get(Constant.ACTION_RESULT);
+			
 			if ( Assert.isEmpty(result)){ 
 				collector.ack(tuple);
 				return;
@@ -135,20 +159,20 @@ public class LogicKpiBolt extends BaseTickTupleAwareRichBolt{
 			
 			if (_action.equalsIgnoreCase(Constant.UPSERT_BOLT)){
 
-				collector.emit(UPDATE_STREAM,tuple, new Values(true,operationPayload));
-				collector.emit(INSERT_STREAM,tuple, new Values(true,operationPayload));
+				collector.emit(UPDATE_STREAM,tuple, new Values(_streamId,operationPayload));
+				collector.emit(INSERT_STREAM,tuple, new Values(_streamId,operationPayload));
 				
 			}else if (_action.equalsIgnoreCase(Constant.UPDATE_BOLT)){
-				collector.emit(UPDATE_STREAM,tuple, new Values(true,operationPayload));
+				collector.emit(UPDATE_STREAM,tuple, new Values(_streamId,operationPayload));
 			}else if (_action.equalsIgnoreCase(Constant.INSERT_BOLT)){
-				
-				collector.emit(INSERT_STREAM,tuple, new Values(true,operationPayload));
-								
+				collector.emit(INSERT_STREAM,tuple, new Values(_streamId,operationPayload));
 			}
 			
+			collector.emit("CONTROL_STREAM",tuple, new Values(_streamId,operationPayload));
 			this.collector.ack(tuple);
 			
 		}catch (Exception e) {
+			LOG.error(e.getMessage());
             this.collector.reportError(e);
             this.collector.fail(tuple);
         }
@@ -157,9 +181,9 @@ public class LogicKpiBolt extends BaseTickTupleAwareRichBolt{
 	
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
-		declarer.declareStream(UPDATE_STREAM,new Fields("PROCESS_RESULT","Constant.PAYLOAD"));
-		declarer.declareStream(INSERT_STREAM,new Fields("PROCESS_RESULT","Constant.PAYLOAD"));
-		declarer.declareStream("STREAM_REST", new Fields("Constants.PAYLOAD"));
+		declarer.declareStream("CONTROL_STREAM", new Fields("streamId","PAYLOAD"));
+		declarer.declareStream(UPDATE_STREAM,new Fields("streamId","PAYLOAD"));
+		declarer.declareStream(INSERT_STREAM,new Fields("streamId","PAYLOAD"));		
 	}
 	
 }

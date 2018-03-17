@@ -16,6 +16,17 @@ public class OperationPayload {
 	Map 						configOperationCurrent = new HashMap();
 	List<Map> 					configOperations = new ArrayList();
 	OperationPayload			operationPayloadUpdate;
+	Object						values;
+	String						_streamId;
+	Long						code;
+	Long						total;
+	
+	public OperationPayload() {
+	}
+	
+	public OperationPayload(Object	values) {
+		this.values = values;
+	}
 	
 	public Map getPayload() {
 		return payload;
@@ -78,6 +89,38 @@ public class OperationPayload {
 
 	public void setOperationPayloadUpdate(OperationPayload operationPayloadUpdate) {
 		this.operationPayloadUpdate = operationPayloadUpdate;
+	}
+	
+	public Object getValues() {
+		return values;
+	}
+	
+	public String get_streamId() {
+		return _streamId;
+	}
+
+	public void set_streamId(String _streamId) {
+		this._streamId = _streamId;
+	}
+
+	public Long getCode() {
+		return code;
+	}
+
+	public void setCode(Long code) {
+		this.code = code;
+	}
+
+	public Long getTotal() {
+		return total;
+	}
+
+	public void setTotal(Long total) {
+		this.total = total;
+	}
+
+	public void setValues(Object values) {
+		this.values = values;
 	}
 
 	@Override

@@ -2,21 +2,26 @@ package com.arkin.kpi.quartz.job.config;
 
 import java.io.IOException;
 import java.util.Properties;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import org.quartz.spi.JobFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
+
+import com.arkin.kpi.component.LectorStreaming;
 
 @Configuration
 public class SchedulerConfig {
 	
-	//public static final String QUARTZ_PROPERTIES_PATH = "/quartz.properties";
     @Autowired
     private Environment env;
     
@@ -46,5 +51,16 @@ public class SchedulerConfig {
         
         return properties;
     }
-
+    
+    @Bean
+    public ScheduledExecutorService asyncScheduler() throws InterruptedException, ExecutionException {
+  	  ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+  	  int _delay	=  Integer.parseInt(env.getProperty("time.delay"));
+  		 int _interval	=  Integer.parseInt(env.getProperty("time.interval"));
+  		 
+  		 final ScheduledFuture<?> beeperHandle = scheduler.scheduleWithFixedDelay(new LectorStreaming(), 
+  				 _delay, _interval, TimeUnit.SECONDS);
+  		//beeperHandle.get();
+        return scheduler;
+    }
 }

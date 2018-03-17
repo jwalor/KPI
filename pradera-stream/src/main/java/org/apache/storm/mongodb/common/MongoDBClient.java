@@ -1,20 +1,19 @@
 package org.apache.storm.mongodb.common;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
-import org.bson.BsonDocument;
-import org.bson.BsonDocumentWrapper;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
-import com.mongodb.DB;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.InsertManyOptions;
 import com.mongodb.client.model.UpdateOptions;
@@ -128,12 +127,25 @@ public class MongoDBClient {
         return collection.find(filter).first();
     }
     
+	public List<Document> findDocuments(Bson filter , String collectionName ) {
+        //TODO batch finding
+    	collection = getCollecion(collectionName);
+    	MongoCursor<Document> _cursor = collection.find(filter).iterator();
+    	
+    	List<Document> _documents = new ArrayList<>();
+    	 while (_cursor.hasNext()) {
+    		 _documents.add(_cursor.next());
+		}
+    	
+        return  _documents;
+    }
     
     public Document find(Bson filter , String collectionName ) {
         //TODO batch finding
     	collection = getCollecion(collectionName);
         return collection.find(filter).first();
     }
+    
     /**
      * Closes all resources associated with this instance.
      */

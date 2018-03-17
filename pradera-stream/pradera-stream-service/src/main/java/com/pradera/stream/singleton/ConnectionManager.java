@@ -1,13 +1,11 @@
 package com.pradera.stream.singleton;
 
-import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.storm.jdbc.common.HikariCPConnectionProvider;
-
 import com.pradera.stream.constant.Constant;
 
 /**
@@ -18,24 +16,28 @@ import com.pradera.stream.constant.Constant;
 public class ConnectionManager {
 	
 	private static final Log LOG = LogFactory.getLog(ConnectionManager.class);
-	private static List<HikariCPConnectionSingletonSource> connectionsConfigured;
+	private static List<HikariCPConnectionSingletonSource> connectionsConfigured = new ArrayList<>();
 	
+	public synchronized static void loadDataSource(Map<String, Object> dataSourceMap ) {
+		HikariCPConnectionSingletonSource hikariCPConnectionSingletonSource = null;
+		hikariCPConnectionSingletonSource = new HikariCPConnectionSingletonSource(dataSourceMap , (String) dataSourceMap.get("poolName"));
+		connectionsConfigured.add(hikariCPConnectionSingletonSource);
+		LOG.debug("Creating a new instance client on DB  " + dataSourceMap.get("poolName"));
+	}
 	
 	public synchronized static void loadDataSources(List<Map<String, Object>> dataSourcesListMap ) {
 		
 		HikariCPConnectionSingletonSource hikariCPConnectionSingletonSource = null;
 		for (Map<String, Object> hikariCPConfigMap : dataSourcesListMap) {
 			
-			hikariCPConnectionSingletonSource = new HikariCPConnectionSingletonSource(hikariCPConfigMap);
-			hikariCPConnectionSingletonSource.setDataSourceName((String) hikariCPConfigMap.get(Constant.Fields.DATASOURCE_NAME));
+			hikariCPConnectionSingletonSource = new HikariCPConnectionSingletonSource(hikariCPConfigMap , (String) hikariCPConfigMap.get("poolName"));
 			connectionsConfigured.add(hikariCPConnectionSingletonSource);
-			LOG.debug("Creating a new instance client on DB  " + hikariCPConfigMap.get(Constant.Fields.DATASOURCE_NAME));
+			LOG.debug("Creating a new instance client on DB  " + hikariCPConfigMap.get("poolName"));
 		}
 		
 	}
 	
-	
-	public static HikariCPConnectionProvider getHikariCPConnectionProvider(String nameDataSource) throws SQLException {
+	public static HikariCPConnectionProvider getHikariCPConnectionProvider(String nameDataSource) {
 		HikariCPConnectionProvider currentHikariDataSource = null;
 		
 		for (HikariCPConnectionSingletonSource hikariDataConnectionProvider : connectionsConfigured) {
@@ -49,19 +51,15 @@ public class ConnectionManager {
 	}
 	
 	public synchronized static Boolean lostReference(String nameDataSource) {
-		Boolean lostReference = false;
+		Boolean lostReference = true;
 		for (HikariCPConnectionSingletonSource hikariDataConnectionProvider : connectionsConfigured) {
-			if ( hikariDataConnectionProvider != null && hikariDataConnectionProvider.getDataSourceName().equalsIgnoreCase(nameDataSource)) {
-				if ( HikariCPConnectionSingletonSource.hikariCPConfigMap == null) {
-					lostReference = true;
-					break;
-				}
+			if ( hikariDataConnectionProvider != null && hikariDataConnectionProvider.getDataSourceName().equalsIgnoreCase(nameDataSource)
+					&& 	!hikariDataConnectionProvider.lostReference()) {
+				lostReference = false;
+				break;
 			}
-			lostReference = true;
 		}
 		return lostReference;
 	}
-	
-	
 	
 }

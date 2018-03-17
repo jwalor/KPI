@@ -2,7 +2,6 @@ package org.apache.storm.jdbc.bolt;
 
 import java.sql.Types;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -12,6 +11,7 @@ import org.apache.storm.Config;
 import org.apache.storm.jdbc.common.Column;
 import org.apache.storm.jdbc.common.ConnectionProvider;
 import org.apache.storm.jdbc.common.HikariCPConnectionProvider;
+import org.apache.storm.jdbc.common.JdbcClient;
 import org.apache.storm.jdbc.mapper.JdbcLookupMapper;
 import org.apache.storm.jdbc.mapper.KpiJdbcLookupMapper;
 import org.apache.storm.jdbc.mapper.SimpleJdbcMapper;
@@ -22,6 +22,7 @@ import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
+import org.apache.storm.util.KpiTuple;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.fest.assertions.Assertions;
@@ -34,8 +35,8 @@ import com.mongodb.client.model.Filters;
 import com.pradera.stream.constant.Constant;
 import com.pradera.stream.model.CustomColumn;
 import com.pradera.stream.model.OperationPayload;
+import com.pradera.stream.singleton.ConnectionManager;
 import com.pradera.stream.singleton.HikariCPConnectionSingletonSource;
-import com.pradera.stream.singleton.HikariCPConnectionSingletonTarget;
 import com.pradera.stream.util.DateUtil;
 import com.pradera.stream.util.jdbc.JdbcClientExt;
 
@@ -53,23 +54,20 @@ public class UpsertKpiBolt extends JdbcInsertBolt {
 
 	private static final long serialVersionUID = -8783495568069984732L;
 	private static final Logger LOG = LoggerFactory.getLogger(UpsertKpiBolt.class);
-	private Map<String, String> mapInsert;
-	private JdbcLookupMapper jdbcMapper;
-	Object map;
+	private Map<String, Object> upsertsKpiMap =  Maps.newHashMap();
+
 
 	public UpsertKpiBolt(HikariCPConnectionProvider hikariCPConnectionProvider ,JdbcLookupMapper jdbcMapper, Map mapUpser) {
 
 		super(hikariCPConnectionProvider, jdbcMapper);
 		Validate.notNull(mapUpser);
-		this.mapInsert = mapUpser;
-		this.jdbcMapper = jdbcMapper;
 	}
 
 	@Override
 	public void prepare(Map stormConf, TopologyContext topologyContext, OutputCollector collector) {
 
 		this.collector = collector;
-		LOG.info("Setting dinamycs  operations  on UpsertKpiBolt");
+		LOG.info("Setting dinamycs  operations  on UpsertsKpiBolt");
 
 		if (queryTimeoutSecs == null) {
 			queryTimeoutSecs = Integer.parseInt(stormConf.get(Config.TOPOLOGY_MESSAGE_TIMEOUT_SECS).toString());
@@ -87,44 +85,43 @@ public class UpsertKpiBolt extends JdbcInsertBolt {
 		int port = Integer.parseInt(stormConf.get(Constant.SettingMongo.PORT).toString());
 		String dbName = stormConf.get(Constant.SettingMongo.DB).toString();
 		MongoDBClient mongoDBClient = new MongoDBClient(user, password, dbName, host, port);
-
-		Bson filter = Filters.regex("name", Constant.StormComponent.INSERT_NATIVE_BOLT);
-		Document taskComponent = mongoDBClient.find(filter, "process");
-
-		List<Object> parameters = (List) taskComponent.get("columnFieldsMap");
-		Map _mapParameter = null;
-		List<Column> columns = new ArrayList<Column>(parameters.size());
-
-		for (int i = 0; i < parameters.size(); i++) {
-			_mapParameter = (Map) parameters.get(i);
-			columns.add(new Column((String) _mapParameter.get("name"), (Integer) _mapParameter.get("type")));
-			LOG.debug(columns.toString());
-		}
-
-		Fields outputFieldsMock = new Fields("MOCK");
-		SimpleJdbcMapper mapper = new KpiJdbcLookupMapper(outputFieldsMock, columns);
-
-		StringBuilder sb = new StringBuilder((String) taskComponent.get(Constant.Fields.SCRIPT));
-		Map<String, String> mapInsert = new HashMap<String, String>();
-		mapInsert.put("NATIVE", sb.toString());
-
-		this.mapInsert = mapInsert;
-		this.jdbcMapper = (JdbcLookupMapper) mapper;
-		setJdbcMapper((JdbcLookupMapper) mapper);
 		
 		String _setTopologyName = (String) stormConf.get("name");
-		Map<String, Object> mapSource = getPropertiesConnection(mongoDBClient, _setTopologyName);
+		Bson 		filter 			= 	Filters.eq("name", _setTopologyName);
+		Document 	topology		=	mongoDBClient.find(filter, "topology");
 		
-		if (HikariCPConnectionSingletonTarget.lostReferences()) {
-			HikariCPConnectionSingletonTarget.setHikariCPConfigMap((Map<String, Object>) mapSource);
+		List<DBRef> processes		=	(List)topology.get("bolts");	
+		
+		filter 		= 	Filters.and( Filters.or(
+									 Filters.eq("_id", processes.get(0).getId())
+									 ,Filters.eq("_id", processes.get(1).getId())
+									 ,Filters.eq("_id", processes.get(2).getId())
+									 ,Filters.eq("_id", processes.get(3).getId())
+									 ,Filters.eq("_id", processes.get(4).getId())
+									 ,Filters.eq("_id", processes.get(5).getId())),
+						Filters.eq("name",  Constant.StormComponent.INSERT_NATIVE_BOLT));
+		
+		Document 		process		=	mongoDBClient.find(filter, "bolt");
+		List<Object> 	streamsList	=	(List)process.get("streams");
+		
+		Map map = getPropertiesConnection( mongoDBClient );
+		
+		if ( ConnectionManager.lostReference("dbKpi")) {
+			ConnectionManager.loadDataSources((List<Map<String, Object>>) map.get(Constant.Fields.DATASOURCES));
 		}
-
-		ConnectionProvider connectionProvider = HikariCPConnectionSingletonTarget.getInstance();
-		connectionProvider.prepare();
-		this.jdbcClient = new JdbcClientExt(connectionProvider, queryTimeoutSecs);
-
+		
+		Map	streamMap = null;
+		Map	parametersMap = null;
+		for(int i=0; i< streamsList.size(); i++) {
+			streamMap =  (Map)streamsList.get(i);
+			parametersMap =  Maps.newHashMap();
+			parametersMap.put(Constant.Fields.SCRIPT, (String)streamMap.get(Constant.Fields.SCRIPT));
+			loadingConfigurationJdbcMapper(streamMap, parametersMap);
+			loadingConfigurationJdbcClient(streamMap, parametersMap, stormConf);
+			upsertsKpiMap.put((String)streamMap.get("streamName"), parametersMap);
+		}
+	
 		mongoDBClient.close();
-
 	}
 
 	@Override
@@ -132,25 +129,26 @@ public class UpsertKpiBolt extends JdbcInsertBolt {
 
 		LOG.info(" Processing message on bol UpsertKpiBolt Native ");
 
-		Validate.notNull(HikariCPConnectionSingletonSource.getInstance());
 		try {
-			String upsertQuery = this.mapInsert.get("NATIVE");
-
-			if (StringUtils.isBlank(upsertQuery)) {
-				return;
-			}
-
+			
+			String _streamId = (String) tuple.getValueByField("streamId");
+			
 			/**
 			 * Getting Payload from Tuple
 			 */
-			OperationPayload operationPayload = (OperationPayload) tuple.getValueByField("Constants.PAYLOAD");
+			OperationPayload operationPayload = (OperationPayload) tuple.getValueByField("PAYLOAD");
+			Map upsertKpiMap	  =	(Map) upsertsKpiMap.get(_streamId);
+			
+			String upsertQuery = (String) upsertKpiMap.get(Constant.Fields.SCRIPT);
 
+			KpiJdbcLookupMapper kpiJdbcLookupMapper = (KpiJdbcLookupMapper) upsertKpiMap.get("jdbcLookupMapper");	
+			
 			Map<String, Object> payloadMap = operationPayload.getPayload();
-			Tuple tupleNative = (Tuple) payloadMap.get("TUPLE");
+			KpiTuple tupleNative = (KpiTuple) payloadMap.get("TUPLE");
+			JdbcClient jdbcClient =  (JdbcClient) upsertKpiMap.get("jdbcClient");
 			LOG.debug(" UpsertKpiBolt ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
 			LOG.debug(" UpsertKpiBolt " + tupleNative.toString());
 			
-			KpiJdbcLookupMapper kpiJdbcLookupMapper = (KpiJdbcLookupMapper) jdbcMapper;
 
 			/**
 			 * Working with Columns which will be part of final query.
@@ -160,20 +158,22 @@ public class UpsertKpiBolt extends JdbcInsertBolt {
 			 * logic and options of work with last record.
 			 */
 			
-			List<Column> columns = kpiJdbcLookupMapper.getColumns(tupleNative);
+			List<Column> columns = kpiJdbcLookupMapper.getColumnsKpi(tupleNative);
 
 			columns.add(new CustomColumn("REGISTER_DATE", DateUtil.getSystemTimestamp(), Types.TIMESTAMP));
 			columns.add(new CustomColumn("STATE", 1, Types.INTEGER));
 			List<List<Column>> columnLists = new ArrayList<List<Column>>();
 			columnLists.add(columns);
 
-			this.jdbcClient.executeInsertQuery(upsertQuery, columnLists);
+			jdbcClient.executeInsertQuery(upsertQuery, columnLists);
+			
 			this.collector.ack(tuple);
-
 			Object _total = getValueByField(tupleNative, "TOTAL");
 			Object _code = getValueByField(tupleNative, "CODE");
 
 			if (_total == null || _code == null) {
+				LOG.warn("The record who streamId is : " + tuple.getSourceStreamId() + " and taskId is : "+tuple.getSourceTask() + " ,"
+						+ " don't have columns: TOTAL or CODE , necessary for compare boths and send to Rest Bolt ");
 				return;
 			}
 
@@ -188,8 +188,6 @@ public class UpsertKpiBolt extends JdbcInsertBolt {
 				collector.emit("REST_STREAM", tuple, new Values(operationPayload));
 			}
 		
-		   this.collector.ack(tuple);	
-		   
 		} catch (Exception e) {
 			this.collector.reportError(e);
 			this.collector.fail(tuple);
@@ -198,53 +196,78 @@ public class UpsertKpiBolt extends JdbcInsertBolt {
 
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer outputFieldsDeclarer) {
-		outputFieldsDeclarer.declareStream("REST_STREAM", new Fields("Constants.PAYLOAD"));
+		outputFieldsDeclarer.declareStream("REST_STREAM", new Fields("PAYLOAD"));
 	}
 
-	private Object getValueByField(Tuple tuple, String columnName) {
+	private Object getValueByField(KpiTuple tuple, String columnName) {
 		Object _value = null;
 
 		try {
 			_value = tuple.getValueByField(columnName);
 		} catch (Exception e) {
 			if (e instanceof IllegalArgumentException) {
-				LOG.info("Stream id : " + tuple.getSourceStreamId() + " don't have the Field : " + columnName);
+				LOG.info("Stream id :  don't have the Field : " + columnName);
 			}
 		}
 		return _value;
 	}
+	
+	private void loadingConfigurationJdbcClient(Map streamMap , Map	parametersMap,Map stormConf) {
+		 if(queryTimeoutSecs == null) {
+	            queryTimeoutSecs = Integer.parseInt(stormConf.get(Config.TOPOLOGY_MESSAGE_TIMEOUT_SECS).toString());
+	     }
+	     
+		ConnectionProvider connectionProvider;
+		connectionProvider = ((HikariCPConnectionSingletonSource)ConnectionManager.getHikariCPConnectionProvider("dbKpi")).getInstance();
+	     connectionProvider.prepare();
+	     JdbcClient jdbcClient = new JdbcClientExt(connectionProvider, queryTimeoutSecs);
+	     parametersMap.put("jdbcClient", jdbcClient);
+	}
+	
+	private void loadingConfigurationJdbcMapper(Map streamMap , Map	parametersMap) {
+		List<Object> parameters = (List) streamMap.get("columnFieldsMap");
+		Map _mapParameter = null;
+		List<Column> columns = new ArrayList<Column>(parameters.size());
 
-	protected Map getPropertiesConnection(MongoDBClient mongoDBClient, String topologyName) {
+		for (int i = 0; i < parameters.size(); i++) {
+			_mapParameter = (Map) parameters.get(i);
+			columns.add(new Column((String) _mapParameter.get("name"), (Integer) _mapParameter.get("type")));
+			LOG.debug(columns.toString());
+		}
 
-		// Getting info about connections
-		Bson filter = Filters.eq("name", topologyName);
-		Document topology = mongoDBClient.find(filter, "topology");
-		List<DBRef> communications = (List) topology.get(Constant.Fields.COMMUNICATIONS);
-		Assertions.assertThat(communications.size()).isEqualTo(2);
+		Fields outputFieldsMock = new Fields("MOCK");
+		SimpleJdbcMapper mapper = new KpiJdbcLookupMapper(outputFieldsMock, columns);
+		parametersMap.put("jdbcLookupMapper", mapper);
+	}
+	
+	protected Map getPropertiesConnection(MongoDBClient mongoDBClient) {
 
-		DBRef dbf1 = communications.get(0);
-		DBRef dbf2 = communications.get(1);
-
-		filter = Filters.and(Filters.or(Filters.eq("_id", dbf1.getId()), Filters.eq("_id", dbf2.getId())),
-				Filters.eq("origin", Constant.Fields.TARGET));
-		Document communicationSource = mongoDBClient.find(filter, "communication");
-		Assertions.assertThat(communicationSource).isNotNull();
-
-		/**
-		 * Loading properties to be used in HikariFactory or HikariProvider
-		 */
-		Map<String, Object> mapSource = Maps.newHashMap();
-		mapSource.putAll((Map) communicationSource.get(Constant.Fields.SETTING));
-
-		mapSource.put("dataSource." + Constant.Fields.URL, mapSource.get(Constant.Fields.URL));
-		mapSource.remove(Constant.Fields.URL);
-		mapSource.put("dataSource." + Constant.Fields.USER, mapSource.get(Constant.Fields.USER));
-		mapSource.remove(Constant.Fields.USER);
-		mapSource.put("dataSource." + Constant.Fields.PASSWORD, mapSource.get(Constant.Fields.PASSWORD));
-		mapSource.remove(Constant.Fields.PASSWORD);
-		mapSource.put("registerMbeans", Boolean.TRUE);
-		mapSource.put("maximumPoolSize", 41);
-
-		return mapSource;
+		String _connectionType = "sql";
+		Bson filter = Filters.eq("connectionType", _connectionType);
+		List<Document> communications = mongoDBClient.findDocuments(filter, "communication");
+		Assertions.assertThat(communications.size()).isGreaterThan(0);
+		
+		List<Map<String, Object>> 	dataSourcesListMap 				= 	new ArrayList<Map<String, Object>>();
+		Document communication = null;
+		for (int i = 0; i < communications.size(); i++) {
+			communication	=	communications.get(i);
+			Map<String, Object> map	=	Maps.newHashMap();
+			map.putAll((Map) communication.get(Constant.Fields.SETTING));
+			map.put("dataSource."+Constant.Fields.URL, map.get(Constant.Fields.URL));
+			map.remove(Constant.Fields.URL);
+			map.put("dataSource."+Constant.Fields.USER, map.get(Constant.Fields.USER));
+			map.remove(Constant.Fields.USER);
+			map.put("dataSource."+Constant.Fields.PASSWORD, map.get(Constant.Fields.PASSWORD));
+			map.remove(Constant.Fields.PASSWORD);
+			map.put("registerMbeans", Boolean.TRUE);
+			map.put("poolName", communication.get(Constant.Fields.DATASOURCE_NAME));
+			map.put("maximumPoolSize", 50);
+			map.remove(Constant.Fields.DATASOURCE_NAME);
+			dataSourcesListMap.add(map);
+		}
+		
+		Map<String, Object> map = Maps.newHashMap();
+		map.put(Constant.Fields.DATASOURCES, dataSourcesListMap);
+		return map;
 	}
 }

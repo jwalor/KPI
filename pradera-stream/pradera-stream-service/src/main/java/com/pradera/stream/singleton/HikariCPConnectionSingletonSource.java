@@ -24,31 +24,25 @@ import com.zaxxer.hikari.HikariDataSource;
 @SuppressWarnings("unused")
 public class HikariCPConnectionSingletonSource extends HikariCPConnectionProvider implements Serializable {
 
-	/**
-	 * 
-	 */
+	
 	private static final long serialVersionUID = 5006266166721749291L;
-	private static HikariCPConnectionSingletonSource INSTANCE;
 	private static final Logger LOG = LoggerFactory.getLogger(HikariCPConnectionSingletonSource.class);
 
 	private String info = "Initial info class";
 	public static Map<String, Object> hikariCPConfigMap;
-	private String dataSourceName;
+	private  String dataSourceName;
 	
 	public HikariCPConnectionSingletonSource() {
 		super(hikariCPConfigMap);
 	}
 	
-	public HikariCPConnectionSingletonSource(Map<String, Object> hikariCPConfigMap) {
+	public HikariCPConnectionSingletonSource(Map<String, Object> hikariCPConfigMap , String dataSourceName ) {
 		super(hikariCPConfigMap);
+		this.dataSourceName = dataSourceName;
 	}
 
-	public synchronized static HikariCPConnectionSingletonSource getInstance() {
-		if (INSTANCE == null) {
-			Validate.notNull(HikariCPConnectionSingletonSource.hikariCPConfigMap);
-			INSTANCE = new HikariCPConnectionSingletonSource(HikariCPConnectionSingletonSource.hikariCPConfigMap);
-		}
-		return INSTANCE;
+	public synchronized  HikariCPConnectionSingletonSource getInstance() {
+		return this;
 	}
 
 	public static Map<String, Object> getHikariCPConfigMap() {
@@ -60,15 +54,15 @@ public class HikariCPConnectionSingletonSource extends HikariCPConnectionProvide
 	}
 
 	public void setDataSourceName(String dataSourceName) {
-		this.dataSourceName = dataSourceName;
+		this.dataSourceName  = dataSourceName;
 	}
 
 	public static void setHikariCPConfigMap(Map<String, Object> hikariCPConfigMap) {
 		HikariCPConnectionSingletonSource.hikariCPConfigMap = hikariCPConfigMap;
 	}
 	
-	public synchronized static Boolean lostReferences() {
-		if (INSTANCE == null && HikariCPConnectionSingletonSource.hikariCPConfigMap == null) {
+	public synchronized Boolean lostReference() {
+		if ( HikariCPConnectionSingletonSource.hikariCPConfigMap == null) {
 			 return true;
 		}
 		

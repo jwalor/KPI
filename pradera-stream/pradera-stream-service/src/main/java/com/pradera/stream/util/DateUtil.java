@@ -51,6 +51,10 @@ public class DateUtil extends DateUtils {
 		return new Timestamp(System.currentTimeMillis());
 	}
 	
+	public static java.sql.Date getSystemDBDate() {
+		return new java.sql.Date(System.currentTimeMillis());
+	}
+	
 	/**
 	 * @param dateUser
 	 * @param template

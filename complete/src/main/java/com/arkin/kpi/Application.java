@@ -23,6 +23,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
+import com.arkin.kpi.component.EventBus;
+import com.arkin.kpi.component.EventImp;
+import com.arkin.kpi.component.ObserverStreaming;
 import com.arkin.kpi.quartz.model.to.DashboardKpiTo;
 
 @EnableCaching
@@ -30,17 +33,23 @@ import com.arkin.kpi.quartz.model.to.DashboardKpiTo;
 @EnableAsync
 public class Application   {
 	
-	    
 	private static final Logger LOGGER = LoggerFactory.getLogger(Application.class);	    
+	
+
 	
     public static void main(String[] args) {
     	
+    	ObserverStreaming obs = new ObserverStreaming();
+        obs.start();
+        EventBus.subscribe(obs, EventImp.class);
+        //ControlStreaming.beepForAnHour();
         SpringApplication.run(Application.class, args);
     }
     
     @SuppressWarnings("rawtypes")
 	@Bean
     public CommandLineRunner commandLineRunner(ApplicationContext ctx) {
+    	
     	
     	 LOGGER.info("Creating cache manager via XML resource ");
  	    Configuration xmlConfig = new XmlConfiguration(Application.class.getResource("/ehcache.xml"));
@@ -83,5 +92,6 @@ public class Application   {
       executor.initialize();
       return executor;
   }
-    
+  
+  
 }

@@ -6,7 +6,6 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.mail.SimpleMailMessage;
 
 @Configuration
-//@PropertySource("classpath:mail.properties")
 public class MailConfig {
 	
 	@Bean

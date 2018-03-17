@@ -16,15 +16,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.arkin.kpi.component.ConstantWorker;
+import com.arkin.kpi.component.EventBus;
+import com.arkin.kpi.component.EventImp;
 import com.arkin.kpi.component.service.ComponentNotification;
-import com.arkin.kpi.component.service.ExecutorServiceKpi;
-import com.arkin.kpi.quartz.service.SessionDashboardService;
 import com.arkin.kpi.socket.service.IntegrationService;
 import com.arkin.kpi.socket.util.JsonUtils;
 import com.arkin.kpi.socket.util.UtilException;
 
 
-@SuppressWarnings({"unchecked" , "rawtypes"})
+@SuppressWarnings({"rawtypes"})
 @RestController
 public class ApiController {
 
@@ -40,33 +41,24 @@ public class ApiController {
 	@Autowired
 	ComponentNotification componentNotification;
 	
-	@Autowired
-	ExecutorServiceKpi	executorServiceKpi;
 	
 	@RequestMapping(value="/process/streaming",
 			method=RequestMethod.POST,  consumes = MediaType.APPLICATION_JSON_VALUE , produces={MimeTypeUtils.APPLICATION_JSON_VALUE})
 	public ResponseEntity<?> processTuple(@RequestBody String input) throws IOException {
 	
 		Map<String,Object> dashboards = new HashMap<>();
+		
 		try {
 			
-			Map  mapEntity	 = JsonUtils.jsonToMap((String)input);
+			Map      mapEntity	 = JsonUtils.jsonToMap((String)input);
+			String  _streamId	 = (String) mapEntity.get("streamId");
+			EventImp evt = new EventImp(mapEntity ,_streamId, ConstantWorker.CREATE_WORKER.getValue());
 			
-			///////////////////////////////////////////////////////////////////////////////////
-			/**
-			 *  Processing async about Rules and notifications.
-			 */
-			executorServiceKpi.processNotificationsRules(mapEntity);
-			
-			///////////////////////////////////////////////////////////////////////////////////
-			/**
-			 *   Processing async about dashboard's kpis.
-			 */
-			
-			dashboards = executorServiceKpi.processKpiDashBoards(mapEntity);
+		    EventBus.publishAsync(evt);
 			
 		} catch (Exception e) {
 			LOGGER.error(utilException.getSpecificException(e));
+			return new ResponseEntity<>(dashboards, HttpStatus.BAD_REQUEST);
 		}
 		return new ResponseEntity<>(dashboards, HttpStatus.OK);
 		

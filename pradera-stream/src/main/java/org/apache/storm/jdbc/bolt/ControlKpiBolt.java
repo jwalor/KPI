@@ -1,17 +1,15 @@
 package org.apache.storm.jdbc.bolt;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.util.Strings;
 import org.apache.storm.Config;
 import org.apache.storm.jdbc.common.ConnectionProvider;
 import org.apache.storm.mongodb.common.MongoDBClient;
@@ -19,23 +17,20 @@ import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.topology.base.BaseTickTupleAwareRichBolt;
-import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
-import org.apache.storm.tuple.Values;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.fest.assertions.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import com.google.common.collect.Maps;
-import com.mongodb.DBRef;
 import com.mongodb.client.model.Filters;
 import com.pradera.stream.constant.Constant;
 import com.pradera.stream.model.OperationPayload;
 import com.pradera.stream.singleton.ConnectionManager;
 import com.pradera.stream.singleton.HikariCPConnectionSingletonSource;
-import com.pradera.stream.util.VelocityUtils;
+import com.pradera.stream.util.DateUtil;
+import com.pradera.stream.util.jdbc.NamedParameterStatement;
 
 /**
  * 
@@ -43,25 +38,24 @@ import com.pradera.stream.util.VelocityUtils;
  *
  */
 @SuppressWarnings({"rawtypes" , "unchecked" , "unlikely-arg-type"})
-public class CustomUpsertKpiBolt extends BaseTickTupleAwareRichBolt{
+public class ControlKpiBolt extends BaseTickTupleAwareRichBolt{
 	
 	/**
 	 * 
 	 */
 	private static final long   serialVersionUID = -8783495568069984732L;
-	private static final Logger LOG = LoggerFactory.getLogger(CustomUpsertKpiBolt.class);
-	private String			 	_name;
+	private static final Logger LOG = LoggerFactory.getLogger(ControlKpiBolt.class);
 	protected OutputCollector   collector;
-	private Map<String, Object> customUpsertsMap =  Maps.newHashMap();
+	protected Integer queryTimeoutSecs ;
+	public ConnectionProvider 	connectionProviderControl;
+	public String _updateControl	= Strings.EMPTY;
 	
-	public CustomUpsertKpiBolt(String name) {
-		this._name = name;
+	public ControlKpiBolt() {
 	}
 	
 	@Override
     public void prepare(Map stormConf, TopologyContext topologyContext, OutputCollector collector ) {
-       
-		LOG.info("Setting dinamycs  operations  on CustomUpsertKpiBolt");
+
 		String user 	=  (stormConf.get(Constant.SettingMongo.USER) == null || 
     		    			StringUtils.isEmpty(stormConf.get(Constant.SettingMongo.USER).toString()) )	?
     		    			null:stormConf.get(Constant.SettingMongo.USER).toString();
@@ -75,23 +69,7 @@ public class CustomUpsertKpiBolt extends BaseTickTupleAwareRichBolt{
 		String dbName 		= stormConf.get(Constant.SettingMongo.DB).toString();
 		MongoDBClient mongoDBClient = new MongoDBClient(user,password,dbName,host,port);
 		
-		String _setTopologyName = (String) stormConf.get("name");
-		Bson 		filter 			= 	Filters.eq("name", _setTopologyName);
-		
-		Document 	topology		=	mongoDBClient.find(filter, "topology");
-		List<DBRef> processes		=	(List)topology.get("bolts");	
-		
-		filter 		= 	Filters.and( Filters.or(
-									 Filters.eq("_id", processes.get(0).getId())
-									 ,Filters.eq("_id", processes.get(1).getId())
-									 ,Filters.eq("_id", processes.get(2).getId())
-									 ,Filters.eq("_id", processes.get(3).getId())
-									 ,Filters.eq("_id", processes.get(4).getId())
-									 ,Filters.eq("_id", processes.get(5).getId())),
-						Filters.eq("name", this._name));
-		
-		Document 	process		=	mongoDBClient.find(filter, "bolt");
-		List<Object> 	streamsList	=	(List)process.get("streams");
+
 		
 		Map map = getPropertiesConnection( mongoDBClient);
 		
@@ -99,87 +77,66 @@ public class CustomUpsertKpiBolt extends BaseTickTupleAwareRichBolt{
 			ConnectionManager.loadDataSources((List<Map<String, Object>>) map.get(Constant.Fields.DATASOURCES));
 		}
 		
-		Map	streamMap = null;
-		Map	parametersMap = null;
+		queryTimeoutSecs = Integer.parseInt(stormConf.get(Config.TOPOLOGY_MESSAGE_TIMEOUT_SECS).toString());
+		connectionProviderControl	= ((HikariCPConnectionSingletonSource)ConnectionManager.getHikariCPConnectionProvider("dbKpi")).getInstance();
+		connectionProviderControl.prepare();
 		
-		for(int i=0; i< streamsList.size(); i++) {
-			streamMap =  (Map)streamsList.get(i);
-			parametersMap =  Maps.newHashMap();
-			loadingConfigurationConnectionProvider(streamMap, parametersMap, stormConf);
-			loadingConfigurationOperations(streamMap, parametersMap);
-			
-			customUpsertsMap.put((String)streamMap.get("streamName"), parametersMap);
-		}
-		
+		StringBuilder _sb3 = new StringBuilder();
+		_sb3.append(" update STREAM_UPDATE SET COUNT_RECORD = :COUNT_RECORD , END_HOUR = :END_HOUR ,STATUS = :FINAL_STATUS ");
+		_sb3.append(" WHERE STREAM_UPDATE_NAME = :STREAM_NAME AND STATUS = :STATUS" );
+		_sb3.append(" AND ID_STREAM_UPDATE_PK = ( SELECT ID_STREAM_UPDATE_PK FROM STREAM_UPDATE ORDER BY START_HOUR DESC LIMIT 1 ) " );
+		_sb3.append(" AND to_char(REGISTER_DATE , 'YYYY-MM-DD') = :CURRENT_DATE  ");
+		_updateControl = _sb3.toString();
+
 		mongoDBClient.close();
 		this.collector = collector;
     }
 	
-	private void loadingConfigurationConnectionProvider(Map streamMap , Map	parametersMap,Map stormConf) {
-		ConnectionProvider connectionProvider  = ((HikariCPConnectionSingletonSource)ConnectionManager.getHikariCPConnectionProvider("dbKpi")).
-											     getInstance();
-		connectionProvider.prepare();
-		
-		parametersMap.put("queryTimeoutSecs", Integer.parseInt(stormConf.get(Config.TOPOLOGY_MESSAGE_TIMEOUT_SECS).toString()));
-		parametersMap.put("connectionProvider",connectionProvider);
-	}
-	
-	private void loadingConfigurationOperations(Map streamMap , Map	parametersMap) {
-		
-		Document d = (Document) streamMap.get("executors");
-		Object[]  executorArray = (Object[]) d.values().toArray();
-		
-		if (!ArrayUtils.isEmpty(executorArray)){
-		List<Map>	configOperations =   new  ArrayList<Map>();
-			
-			Map executor = null;
-			for (int j = 0; j < executorArray.length; j++) {
-				Document obj = (Document) executorArray[j];
-				executor = new  HashMap<String , Object>();
-				executor.put(Constant.Fields.SCRIPT_TYPE, obj.get(Constant.Fields.SCRIPT_TYPE));
-				executor.put(Constant.Fields.SCRIPT, obj.get(Constant.Fields.SCRIPT));
-				configOperations.add(executor);
-			}			
-			
-			parametersMap.put("configOperations",configOperations );
-		}
-	}
 	
 	@Override
     protected void process(Tuple tuple) {
         
-		Connection connection = null;
-		String query	 = StringUtils.EMPTY;
+		Connection 	connection 			= null;
+		String 		query	 			= StringUtils.EMPTY;
+		Boolean		connectionCreated	= Boolean.FALSE;
 		
 		try {	
-			
+				LOG.debug("----> Initial time  :" + System.currentTimeMillis()+ " for component : ControlKpiBolt ");
+
 				String _streamId = (String) tuple.getValueByField("streamId");
 				OperationPayload operationPayload = (OperationPayload) tuple.getValueByField("PAYLOAD");
 				
-				Map customUpsertMap	=	(Map) customUpsertsMap.get(_streamId);
-				List<Map>	configOperations =   (List<Map>) customUpsertMap.get("configOperations");
-				ConnectionProvider connectionProvider   =  (ConnectionProvider) customUpsertMap.get("connectionProvider");
-				Integer queryTimeoutSecs  =  (Integer) customUpsertMap.get("queryTimeoutSecs");
-				
-				LOG.info("----> Initial time  :" + System.currentTimeMillis() + " for component : CustomUpsertKpiBolt");
-				
-				for (Map configOperationMap : configOperations) {
+				NamedParameterStatement namedParameterStatement	= null;
+				if (operationPayload.getCode().equals(operationPayload.getTotal())) {// if tuple is the last.
+					
+					query = _updateControl;
+					connection = connectionProviderControl.getConnection();
+					namedParameterStatement	=new NamedParameterStatement(connection, query);
+					namedParameterStatement.setLong("COUNT_RECORD", operationPayload.getTotal());
+					namedParameterStatement.setTimestamp("END_HOUR", (Timestamp) DateUtil.getSystemTimestamp());
+					namedParameterStatement.setLong("FINAL_STATUS", 1L);
+					namedParameterStatement.setString("CURRENT_DATE", DateUtil.getDateFormatted(DateUtil.getSystemDate(), DateUtil.PATTERN_ONLY_DATE));
+			        namedParameterStatement.setLong("STATUS", 0L);
+					namedParameterStatement.setString("STREAM_NAME", _streamId);
 
-					query =  VelocityUtils.loadTemplateVM(configOperationMap.get(Constant.Fields.SCRIPT) ,operationPayload.getPayload());
-		            connection = connectionProvider.getConnection();
+					connectionCreated	= Boolean.TRUE;
+				}
+				
+				if ( connectionCreated ) {
+					
+					if(queryTimeoutSecs > 0) {
+		            	namedParameterStatement.getStatement().setQueryTimeout(queryTimeoutSecs);
+		            }
+					
 		            boolean autoCommit = connection.getAutoCommit();
 		            if(autoCommit) {
 		                connection.setAutoCommit(false);
 		            }
 		            
 		            LOG.debug("Executing query {}", query);
-		            PreparedStatement preparedStatement = connection.prepareStatement(query);
-
-		            if(queryTimeoutSecs > 0) {
-		                preparedStatement.setQueryTimeout(queryTimeoutSecs);
-		            }
-		            preparedStatement.addBatch();
-		            int[] results = preparedStatement.executeBatch();
+	
+		            namedParameterStatement.addBatch();
+		            int[] results = namedParameterStatement.executeBatch();
 		            if(Arrays.asList(results).contains(Statement.EXECUTE_FAILED)) {
 		                connection.rollback();
 		                throw new RuntimeException("failed at least one sql statement in the batch, operation rolled back.");
@@ -190,28 +147,16 @@ public class CustomUpsertKpiBolt extends BaseTickTupleAwareRichBolt{
 		                    throw new RuntimeException("Failed to commit  query " + query, e);
 		                }
 		            }
-		            
-				}
 				
-				LOG.info("----> Final time  :" + System.currentTimeMillis()+ " for component : CustomUpsertKpiBolt");
-				
-				////////////////////////////////////////////////////////////////////////////////////////////
-				/**
-				*  Sending tuple to WriterBolt.
-				*/
-				///////////////////////////////////////////////////////////////////////////////////////////
-			String _streamName = tuple.getSourceStreamId();
-			if (_streamName.equalsIgnoreCase("INSERT_STREAM")) {
-				LOG.info("::::::::::::::::::::::::::: SENDING TUPLE TO WRITER BOLT !!!!!!!!!!!!!!!!!!!!!!!!!!!");
-				collector.emit("REST_STREAM",tuple, new Values(operationPayload));
-			}
-			
+			  }
+					
+			LOG.debug("----> Final time  :" + System.currentTimeMillis()+ " for component : ControlKpiBolt");
 			this.collector.ack(tuple);
         } 
 		catch (Exception e) {
             this.collector.reportError(e);
             this.collector.fail(tuple);
-            LOG.info("Failed to execute  query " + query, e);
+            LOG.error("Failed to execute  query " + query, e);
         }
 		finally {
 			if (connection != null) {
@@ -227,7 +172,6 @@ public class CustomUpsertKpiBolt extends BaseTickTupleAwareRichBolt{
 
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
-		declarer.declareStream("REST_STREAM", new Fields("PAYLOAD"));
 	}
 
 	protected Map getPropertiesConnection( MongoDBClient mongoDBClient) {
