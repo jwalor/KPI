@@ -21,6 +21,7 @@ public class Constant {
 		
 		public static final String DATASOURCES 			= "dataSources";
 		public static final String DATASOURCE_NAME 		= "dataSourceName";
+		public static final String DATASOURCE_T_NAME 	= "dataSourceTargetName";
 		public static final String NAME 				= "name";
 		public static final String TABLE_TARGET 		= "tableTarget";
 		public static final String CONNECTION_TYPE 		= "connectionType";
@@ -37,6 +38,11 @@ public class Constant {
 		public static final String URL 					= "url";
 		public static final String USER 				= "user";
 		public static final String PASSWORD 			= "password";
+		public static final String DATABASENAME 		= "databaseName";
+		public static final String SCHEMA 				= "schema";
+		public static final String MINIMUMIDLE 			= "minimumIdle";
+		public static final String MAXIMUM_POOL_SIZE 	= "maximumPoolSize";
+		public static final String CONNECION_TIMEOUT 	= "connectionTimeout";
 		public static final String SCRIPT 			    = "script";
 		public static final String EXECUTIONS 			= "executions";
 		public static final String PROCESSES 			= "process";
@@ -46,6 +52,7 @@ public class Constant {
 		public static final String PROCESS_EXECUTING 	= "processExecuting";
 		public static final String COMMUNICATIONS 		= "communications";
 		public static final String TIME 				= "time";
+		public static final String TIMEOUTSEC			= "timeoutSec";
 	}
 	
      public static class SettingMongo {

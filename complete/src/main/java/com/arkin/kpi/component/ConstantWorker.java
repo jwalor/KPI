@@ -1,5 +1,10 @@
 package com.arkin.kpi.component;
 
+/**
+ * 
+ * @author jalor
+ *
+ */
 public enum ConstantWorker  {
 	  
 	  EVENT_DEMAND(1),

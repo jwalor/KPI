@@ -4,7 +4,10 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,7 +28,7 @@ import com.arkin.kpi.socket.util.UtilException;
 @Component
 @Transactional
 @SuppressWarnings({"unchecked","rawtypes"})
-public class ExecutorServiceKpiImpl implements ExecutorServiceKpi {
+public class ExecutorServiceKpiImpl implements ExecutorServiceKpi  {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ExecutorServiceKpiImpl.class);
 	
@@ -43,6 +46,9 @@ public class ExecutorServiceKpiImpl implements ExecutorServiceKpi {
 	
 	@Autowired
 	NotificationsService notificationsService;
+	
+	@SuppressWarnings("unused")
+	private ApplicationContext applicationContext;
 	
 	@Async
 	@Override
@@ -74,6 +80,5 @@ public class ExecutorServiceKpiImpl implements ExecutorServiceKpi {
 		notificationsService.getRulesNotificationsByEventsAndTable(mapEntity);
 	}
 
-	
 
 }

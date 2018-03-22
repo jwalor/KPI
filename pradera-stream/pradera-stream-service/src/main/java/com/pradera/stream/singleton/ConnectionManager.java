@@ -7,6 +7,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.storm.jdbc.common.HikariCPConnectionProvider;
 import com.pradera.stream.constant.Constant;
+import com.pradera.stream.util.StringUtil;
 
 /**
  * 
@@ -27,12 +28,25 @@ public class ConnectionManager {
 	
 	public synchronized static void loadDataSources(List<Map<String, Object>> dataSourcesListMap ) {
 		
-		HikariCPConnectionSingletonSource hikariCPConnectionSingletonSource = null;
+		HikariCPConnectionProvider hikariCPConnectionSingletonSource = null;
 		for (Map<String, Object> hikariCPConfigMap : dataSourcesListMap) {
 			
-			hikariCPConnectionSingletonSource = new HikariCPConnectionSingletonSource(hikariCPConfigMap , (String) hikariCPConfigMap.get("poolName"));
-			connectionsConfigured.add(hikariCPConnectionSingletonSource);
-			LOG.debug("Creating a new instance client on DB  " + hikariCPConfigMap.get("poolName"));
+			String nameDataSource = (String) hikariCPConfigMap.get("poolName");
+			
+			hikariCPConnectionSingletonSource = getHikariCPConnectionProvider( nameDataSource) ;
+			if (hikariCPConnectionSingletonSource == null) {
+				
+				String _schema	= StringUtil.EMPTY;
+				if (hikariCPConfigMap.get(Constant.Fields.SCHEMA)!=null) {
+					_schema	= (String) hikariCPConfigMap.get(Constant.Fields.SCHEMA);
+					hikariCPConfigMap.remove(Constant.Fields.SCHEMA);
+				}
+				hikariCPConnectionSingletonSource = new HikariCPConnectionSingletonSource(hikariCPConfigMap , (String) hikariCPConfigMap.get("poolName"));
+				((HikariCPConnectionSingletonSource) hikariCPConnectionSingletonSource).setSchema(_schema);
+				connectionsConfigured.add((HikariCPConnectionSingletonSource) hikariCPConnectionSingletonSource);
+				LOG.debug("Creating a new instance client on DB  " + hikariCPConfigMap.get("poolName"));
+				
+			}
 		}
 		
 	}
@@ -53,7 +67,7 @@ public class ConnectionManager {
 	public synchronized static Boolean lostReference(String nameDataSource) {
 		Boolean lostReference = true;
 		for (HikariCPConnectionSingletonSource hikariDataConnectionProvider : connectionsConfigured) {
-			if ( hikariDataConnectionProvider != null && hikariDataConnectionProvider.getDataSourceName().equalsIgnoreCase(nameDataSource)
+			if (  hikariDataConnectionProvider.getDataSourceName().equalsIgnoreCase(nameDataSource)
 					&& 	!hikariDataConnectionProvider.lostReference()) {
 				lostReference = false;
 				break;

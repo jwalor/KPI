@@ -35,7 +35,6 @@ public class PopulateConnection  {
 		Document document = new Document();
 
 		document.put(Constant.Fields.CONNECTION_TYPE, Constant.Fields.SQL);
-		document.put(Constant.Fields.ORIGIN, Constant.Fields.SOURCE);
 		document.put(Constant.Fields.DATASOURCE_NAME, "dbWari");
 		
 		Map setting = new HashMap<String, String>();
@@ -43,7 +42,11 @@ public class PopulateConnection  {
 		setting.put(Constant.Fields.URL, "jdbc:oracle:thin:@52.39.34.204:1521:xe");
 		setting.put(Constant.Fields.USER, "CSDCORE_BVL");
 		setting.put(Constant.Fields.PASSWORD, "CSDCORE_BVL" );
+		setting.put(Constant.Fields.SCHEMA, "");
 		document.put(Constant.Fields.SETTING, setting);
+		document.put(Constant.Fields.MAXIMUM_POOL_SIZE, 50);
+		document.put(Constant.Fields.MINIMUMIDLE, 10);
+
 		
 		mongoDBClient.setCollection( mongoDBClient.getCollecion("communication"));
 		
@@ -61,15 +64,18 @@ public class PopulateConnection  {
 		Document document = new Document();
 
 		document.put(Constant.Fields.CONNECTION_TYPE, Constant.Fields.SQL);
-		document.put(Constant.Fields.ORIGIN, Constant.Fields.TARGET);
 		document.put(Constant.Fields.DATASOURCE_NAME, "dbKpi");
 		
 		Map setting = new HashMap<String, String>();
 		setting.put(Constant.Fields.DRIVER, "org.postgresql.ds.PGSimpleDataSource" );
 		setting.put(Constant.Fields.URL, "jdbc:postgresql://localhost:5432/postgres");
 		setting.put(Constant.Fields.USER, "postgres");
-		setting.put(Constant.Fields.PASSWORD, "@dmin123" );
+		setting.put(Constant.Fields.PASSWORD, "@dmin123");
+		setting.put(Constant.Fields.SCHEMA, "kpi_stream");
 		document.put(Constant.Fields.SETTING, setting);
+		document.put(Constant.Fields.MAXIMUM_POOL_SIZE, 50);
+		document.put(Constant.Fields.MINIMUMIDLE, 10);
+
 		
 		mongoDBClient.setCollection( mongoDBClient.getCollecion("communication"));
 		List<Document> executions = new ArrayList<Document>();
@@ -80,7 +86,7 @@ public class PopulateConnection  {
 		mongoDBClient.close();
 	}
 	
-	@Test
+	//@Test
 	public void associatedToTopologies() {
 		
 		MongoDBClient mongoDBClient = new MongoDBClient(null,null,"storm_config2","localhost",27017);

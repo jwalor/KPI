@@ -16,9 +16,9 @@ config:
   HOST: localhost
   PORT: 27017
   name: "KPITopology"
+  HAZELCAST.USER: dev
+  HAZELCAST.PASSWORD: dev-pass
 topologySource:
   className: "org.apache.storm.topologies.FixedKpiTopologyTest"
 
-#  - "foo"
-#  - "bar"
 

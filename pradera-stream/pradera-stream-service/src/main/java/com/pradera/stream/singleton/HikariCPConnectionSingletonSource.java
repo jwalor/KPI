@@ -13,6 +13,8 @@ import org.apache.storm.jdbc.common.HikariCPConnectionProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
+import com.pradera.stream.util.StringUtil;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
@@ -31,7 +33,8 @@ public class HikariCPConnectionSingletonSource extends HikariCPConnectionProvide
 	private String info = "Initial info class";
 	public static Map<String, Object> hikariCPConfigMap;
 	private  String dataSourceName;
-	
+    private String schema = StringUtil.EMPTY;
+
 	public HikariCPConnectionSingletonSource() {
 		super(hikariCPConfigMap);
 	}
@@ -65,8 +68,15 @@ public class HikariCPConnectionSingletonSource extends HikariCPConnectionProvide
 		if ( HikariCPConnectionSingletonSource.hikariCPConfigMap == null) {
 			 return true;
 		}
-		
 		return false;
+	}
+
+	public String getSchema() {
+		return schema;
+	}
+
+	public void setSchema(String schema) {
+		this.schema = schema;
 	}
 	
 }

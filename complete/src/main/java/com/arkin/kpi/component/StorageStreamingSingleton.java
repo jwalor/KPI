@@ -1,5 +1,6 @@
 package com.arkin.kpi.component;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -11,9 +12,10 @@ import com.arkin.kpi.socket.util.MapperUtil;
  * @author jalor
  *
  */
+@SuppressWarnings({"rawtypes","unchecked"})
 public class StorageStreamingSingleton {
 
-		public  static ConcurrentMap<String, Object> mapStreaming = new ConcurrentHashMap<>(100);
+		public  static ConcurrentMap<String, Object> mapStreaming = new ConcurrentHashMap<>();
 		private static StorageStreamingSingleton INSTANCE ;
 		
 		
@@ -36,14 +38,20 @@ public class StorageStreamingSingleton {
 	        return INSTANCE;
 	    }
 		
-		public synchronized void anadir(String  streamId) {
+		
+		public synchronized void anadir(Map  mapEvent , String _streamId) {
 			
-			Object _countStreaming = mapStreaming.get(streamId);
+			Object _countStreaming = mapStreaming.get(_streamId);
 			if (_countStreaming == null) {
-				mapStreaming.put(streamId, 1L);
+				Map<String, Object> parameter = new HashMap<>();
+				parameter.put("frequently", 1L);
+				parameter.put("tableTarget", mapEvent.get("tableTarget"));
+				mapStreaming.put(_streamId, parameter);
 			}else {
-				Long _longCount = (Long) _countStreaming;
-				mapStreaming.put(streamId, ++_longCount);
+				Map<String, Object> parameter = (Map<String, Object>)_countStreaming;
+				Long _longCount = (Long) parameter.get("frequently");
+				parameter.put(_streamId, ++_longCount);
+				mapStreaming.put(_streamId, parameter);
 			}
 		}
 		

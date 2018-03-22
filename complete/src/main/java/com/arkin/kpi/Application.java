@@ -42,7 +42,6 @@ public class Application   {
     	ObserverStreaming obs = new ObserverStreaming();
         obs.start();
         EventBus.subscribe(obs, EventImp.class);
-        //ControlStreaming.beepForAnHour();
         SpringApplication.run(Application.class, args);
     }
     
@@ -86,8 +85,8 @@ public class Application   {
   public Executor asyncExecutor() {
       ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
       executor.setCorePoolSize(2);
-      executor.setMaxPoolSize(100);
-      executor.setQueueCapacity(500);
+      executor.setMaxPoolSize(Integer.MAX_VALUE);
+      executor.setQueueCapacity(Integer.MAX_VALUE);
       executor.setThreadNamePrefix("SendEmail-");
       executor.initialize();
       return executor;

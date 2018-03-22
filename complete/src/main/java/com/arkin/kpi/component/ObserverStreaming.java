@@ -6,6 +6,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import com.arkin.kpi.component.service.IObserver;
 
+/**
+ * 
+ * @author jalor
+ *
+ */
+@SuppressWarnings("rawtypes")
 public class ObserverStreaming extends Thread implements IObserver{
 	private static Log _logger = LogFactory.getLog(ObserverStreaming.class);
 
@@ -14,23 +20,20 @@ public class ObserverStreaming extends Thread implements IObserver{
    
     private static BlockingQueue<AEvent<?>> incoming = new LinkedBlockingQueue<AEvent<?>>();
 
-	@SuppressWarnings("rawtypes")
+
 	@Override
 	public synchronized void verifyConections(AEvent event) {
         EventImp evntImpl = (EventImp)event;
+        WorkerStreaming _worker = null;
         if ( evntImpl.getBehavior() == ConstantWorker.CREATE_WORKER.getValue()){ 
-        	WorkerStreaming _worker = existWorker(evntImpl.getConnuid());
+        	_worker = existWorker(evntImpl.getConnuid());
         	if (_worker == null){
         		_worker = new WorkerStreaming();
         		_worker.setConnuid(evntImpl.getConnuid());
         		workers.add(_worker);
         	}
-        }else if (evntImpl.getBehavior() == ConstantWorker.REMOVE_WORKER.getValue()){ 
-        	WorkerStreaming _worker = existWorker(evntImpl.getConnuid());
-        	if ( _worker != null){
-        		_worker.set_connectionRemoved(true);
-        	}
         }
+        _worker.setMapEvent(evntImpl.getMapEntity());
         incoming.add(event);
 	}
 	

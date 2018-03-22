@@ -2,7 +2,6 @@ package com.pradera.stream.service.impl;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.logging.Log;
@@ -14,7 +13,6 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 
-import com.pradera.stream.constant.Constant;
 import com.pradera.stream.model.OperationPayload;
 import com.pradera.stream.service.OperationWriterStrategy;
 import com.pradera.stream.util.JsonUtils;
@@ -24,7 +22,6 @@ public class OperationWriterWsImpl implements OperationWriterStrategy {
 
 	private static final Log LOG = LogFactory.getLog(OperationWriterWsImpl.class);
 	
-	@SuppressWarnings("unchecked")
 	@Override
 	public void write(OperationPayload operationPayload) throws ClientProtocolException, IOException ,UnsupportedEncodingException {
 		LOG.info("---- ---- Transforming. ");
@@ -36,9 +33,7 @@ public class OperationWriterWsImpl implements OperationWriterStrategy {
 			 ///////////////////////////////////////////////////
 			 
 			 HttpPost 		post 	 = (HttpPost) currentOperation.get("post");
-			 
-			 Map mapEntity = new HashMap();
-			 mapEntity.put(Constant.Fields.TABLE_TARGET, currentOperation.get(Constant.Fields.TABLE_TARGET));
+			 Map mapEntity = (Map) currentOperation.get("body");
 			 String strJson = JsonUtils.toJson(mapEntity);
 			 StringEntity input = new StringEntity(strJson);
 			 input.setContentType("application/json; charset=ISO-8859-1");

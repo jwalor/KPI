@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
+import org.apache.commons.lang3.Validate;
+import org.apache.storm.Config;
 import org.apache.storm.flux.api.TopologySource;
 import org.apache.storm.generated.StormTopology;
 import org.apache.storm.jdbc.bolt.ControlKpiBolt;
@@ -20,6 +22,7 @@ import org.apache.storm.jdbc.bolt.WriterApiBolt;
 import org.apache.storm.jdbc.common.Column;
 import org.apache.storm.jdbc.common.ConnectionProvider;
 import org.apache.storm.jdbc.common.HikariCPConnectionProvider;
+import org.apache.storm.jdbc.common.JdbcClient;
 import org.apache.storm.jdbc.mapper.JdbcLookupMapper;
 import org.apache.storm.jdbc.mapper.KpiJdbcLookupMapper;
 import org.apache.storm.jdbc.mapper.SimpleJdbcMapper;
@@ -29,8 +32,10 @@ import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.tuple.Fields;
 import org.bson.Document;
 import org.bson.conversions.Bson;
+import org.fest.assertions.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.hazelcast.core.Hazelcast;
@@ -39,6 +44,8 @@ import com.mongodb.DBRef;
 import com.mongodb.client.model.Filters;
 import com.pradera.stream.constant.Constant;
 import com.pradera.stream.singleton.ConnectionManager;
+import com.pradera.stream.singleton.HikariCPConnectionSingletonSource;
+import com.pradera.stream.util.jdbc.JdbcClientExt;
 
 
 /**
@@ -58,17 +65,18 @@ public class FixedKpiTopologyTest  implements TopologySource {
 	public static final String NATIVE_STREAM = "NATIVE_STREAM";
 	public static final String UPDATE_STREAM = "UPDATE_STREAM";
 	public static final String LOGIC_STREAM = "LOGIC_STREAM";
-	
-    private static final Integer NUM_WORKERS=1;
 	private static final Integer NUM_TASKS=1;
-
-    
+	public Map<String, Object> stormConf;
+	public String _dataSourceName;
+	public String _dataSourceTName;
+	
 	private static final Logger LOG = LoggerFactory.getLogger(FixedKpiTopologyTest.class);
 
 
 	@Override
 	public StormTopology getTopology(Map<String, Object> setting) {
 		
+		this.stormConf = setting;
 		String _setTopologyName = (String) setting.get("name");
 		
 		String host 	= setting.get(Constant.SettingMongo.HOST).toString();
@@ -78,62 +86,54 @@ public class FixedKpiTopologyTest  implements TopologySource {
 		MongoDBClient mongoDBClient = new MongoDBClient(null,null,dbName,host,port);
 		Bson 		filter 		= 	Filters.eq("name", _setTopologyName);
 		Document 	topology	=	mongoDBClient.find(filter, "topology");
+		Validate.notNull(topology, "The topology  "+ _setTopologyName + " must not be null");
 		
-		// SI NO EXISTE LA TOPOLOGIA DEBERIA TERNIMAR TODO ACÁ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11
-//		SI NO EXISTE LA TOPOLOGIA DEBERIA TERNIMAR TODO ACÁ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11
-//		SI NO EXISTE LA TOPOLOGIA DEBERIA TERNIMAR TODO ACÁ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11
-//		SI NO EXISTE LA TOPOLOGIA DEBERIA TERNIMAR TODO ACÁ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11
-//		
-//		SI NO EXISTE LA TOPOLOGIA DEBERIA TERNIMAR TODO ACÁ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11
-//		SI NO EXISTE LA TOPOLOGIA DEBERIA TERNIMAR TODO ACÁ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11
-//		SI NO EXISTE LA TOPOLOGIA DEBERIA TERNIMAR TODO ACÁ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11
-//		
-//		SI NO EXISTE LA TOPOLOGIA DEBERIA TERNIMAR TODO ACÁ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11
-
-//		List<DBRef> communications		=	(List)topology.get(Constant.Fields.COMMUNICATIONS);		
-//		Assertions.assertThat(communications.size()).isEqualTo(2);
-//
-//
-//		DBRef	dbf1 = communications.get(0);
-//		DBRef	dbf2 = communications.get(1);
-//
-//		filter 		= 	Filters.and(Filters.or(Filters.eq("_id", dbf1.getId()),Filters.eq("_id", dbf2.getId())),Filters.eq("origin", Constant.Fields.SOURCE));
-//		Document 	communicationSource	=	mongoDBClient.find(filter, "communication");
-//		Assertions.assertThat(communicationSource).isNotNull();
-//		filter 		= 	Filters.and(Filters.or(Filters.eq("_id", dbf1.getId()),Filters.eq("_id", dbf2.getId())),Filters.eq("origin", Constant.Fields.TARGET));
-//		Document 	communicationTarget	=	mongoDBClient.find(filter, "communication");
-//		Assertions.assertThat(communicationTarget).isNotNull();
-//
-//		/**
-//		 *  Loading properties to be used in HikariFactory or HikariProvider
-//		 */
-//		Map<String, Object> mapSource = Maps.newHashMap();
-//		mapSource.putAll((Map) communicationSource.get(Constant.Fields.SETTING));
-//
-//		Map<String, Object> mapTarget = Maps.newHashMap();
-//		mapTarget.putAll((Map) communicationTarget.get(Constant.Fields.SETTING));
-//
-//		mapSource.put("dataSource."+Constant.Fields.URL, mapSource.get(Constant.Fields.URL));
-//		mapSource.remove(Constant.Fields.URL);
-//		mapSource.put("dataSource."+Constant.Fields.USER, mapSource.get(Constant.Fields.USER));
-//		mapSource.remove(Constant.Fields.USER);
-//		mapSource.put("dataSource."+Constant.Fields.PASSWORD, mapSource.get(Constant.Fields.PASSWORD));
-//		mapSource.remove(Constant.Fields.PASSWORD);
-//		mapSource.put("registerMbeans", Boolean.TRUE);
-//
-//		mapTarget.put("dataSource."+Constant.Fields.URL, mapTarget.get(Constant.Fields.URL));
-//		mapTarget.remove(Constant.Fields.URL);
-//		mapTarget.put("dataSource."+Constant.Fields.USER, mapTarget.get(Constant.Fields.USER));
-//		mapTarget.remove(Constant.Fields.USER);
-//		mapTarget.put("dataSource."+Constant.Fields.PASSWORD, mapTarget.get(Constant.Fields.PASSWORD));
-//		mapTarget.remove(Constant.Fields.PASSWORD);
-//		mapTarget.put("registerMbeans", Boolean.TRUE);
-//		mapTarget.put("maximumPoolSize", 40);
-//		
-//		HikariCPConnectionSingletonTarget.setHikariCPConfigMap(mapTarget);
-//		connectionProviderTarget = HikariCPConnectionSingletonTarget.getInstance();
-//		connectionProviderTarget.cleanup();
-
+		_dataSourceName  = (String) topology.get("dataSourceName");
+		_dataSourceTName = (String) topology.get("dataSourceTargetName");
+		
+		Map numTaskMap			=	(Map)topology.get("numTask");//
+		
+		List<Object> 	streamsList	=	(List)topology.get("streamIds");
+		Validate.notNull(streamsList, "The streamsList  must not be null");
+		
+		
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		
+		List<DBRef> spoutList = (List) topology.get(Constant.Fields.SPOUTS);
+		List<Bson> list = new ArrayList<Bson>();
+		for (int i = 0; i < spoutList.size(); i++) {
+			list.add(Filters.eq("_id", spoutList.get(i).getId()));
+		}
+		filter = Filters.and(Filters.or(list));
+		List<Document> spouts = mongoDBClient.findDocuments(filter, "spout");
+		Assertions.assertThat(spouts.size()).isGreaterThan(0);
+		
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		Map map = getPropertiesConnection( mongoDBClient);
+		ConnectionManager.loadDataSources((List<Map<String, Object>>) map.get(Constant.Fields.DATASOURCES));
+		
+		Document spout = null;
+		for (int i = 0; i < spouts.size(); i++) {
+			spout	=	spouts.get(i);
+			try {
+				executePreExecutions(spout , mongoDBClient);
+			} catch (Exception e) {
+				LOG.error(" ERROR MANAGMENT  :::: " + e.getCause());
+				throw e;
+			}
+			
+		}
+		mongoDBClient.close();
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		
+		HazelcastInstance hzInstance = Hazelcast.newHazelcastInstance();
+		Queue<String> q = hzInstance.getQueue("queueSpouts");
+		
+		for(int i=0; i< streamsList.size(); i++) {
+			q.add(streamsList.get(i).toString());
+		}
+		
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		
 		/**
 		 *  Valores por defauls , luego de la construcción de la topología serán reemplazados
@@ -164,27 +164,94 @@ public class FixedKpiTopologyTest  implements TopologySource {
 		WriterApiBolt	restApiBolt = new WriterApiBolt();
 		KpiSpout		kpiSpout = new KpiSpout(setting);
 		
-		HazelcastInstance hzInstance = Hazelcast.newHazelcastInstance();
-		Queue<String> q = hzInstance.getQueue("queueSpouts");
-		q.add("settlementStream");
 		
 		TopologyBuilder builder = new TopologyBuilder();
 
-		builder.setSpout(USER_SPOUT, kpiSpout,1);
-		builder.setBolt(LOOKUP_BOLT, kpiComparatorBolt, NUM_TASKS).setNumTasks(NUM_TASKS).shuffleGrouping(USER_SPOUT);
-		builder.setBolt("CONTROL1",  new ControlKpiBolt(), NUM_TASKS).setNumTasks(NUM_TASKS).shuffleGrouping(LOOKUP_BOLT,"CONTROL_STREAM");
+		builder.setSpout(USER_SPOUT, kpiSpout, Integer.parseInt(numTaskMap.get("USER_SPOUT").toString()));
+		builder.setBolt(LOOKUP_BOLT, kpiComparatorBolt, NUM_TASKS).setNumTasks(Integer.parseInt(numTaskMap.get("LOOKUP_BOLT").toString())).shuffleGrouping(USER_SPOUT);
+		builder.setBolt("CONTROL1",  new ControlKpiBolt(_dataSourceTName), NUM_TASKS).setNumTasks(Integer.parseInt(numTaskMap.get("CONTROL1").toString())).shuffleGrouping(LOOKUP_BOLT,"CONTROL_STREAM");
 		
-		builder.setBolt(PERSISTANCE_BOLT, kpiPersistentBolt, NUM_TASKS).setNumTasks(NUM_TASKS).shuffleGrouping(LOOKUP_BOLT,NATIVE_STREAM);
-		builder.setBolt(LOGIC_BOLT, new LogicKpiBolt(), NUM_TASKS).setNumTasks(NUM_TASKS).shuffleGrouping(LOOKUP_BOLT,LOGIC_STREAM);
+		builder.setBolt(PERSISTANCE_BOLT, kpiPersistentBolt, NUM_TASKS).setNumTasks(Integer.parseInt(numTaskMap.get("PERSISTANCE_BOLT").toString())).shuffleGrouping(LOOKUP_BOLT,NATIVE_STREAM);
+		builder.setBolt(LOGIC_BOLT, new LogicKpiBolt(), NUM_TASKS).setNumTasks(Integer.parseInt(numTaskMap.get("LOGIC_BOLT").toString())).shuffleGrouping(LOOKUP_BOLT,LOGIC_STREAM);
 		
-		builder.setBolt("CONTROL2",  new ControlKpiBolt(), NUM_TASKS).setNumTasks(NUM_TASKS).shuffleGrouping(LOGIC_BOLT,"CONTROL_STREAM");
-		builder.setBolt("UPDATE_BOLT", customUpdateKpiBolt, NUM_TASKS).setNumTasks(NUM_TASKS).shuffleGrouping(LOGIC_BOLT,UPDATE_STREAM);
-		builder.setBolt("INSERT_BOLT", customInsertKpiBolt, NUM_TASKS).setNumTasks(NUM_TASKS).shuffleGrouping(LOGIC_BOLT,INSERT_STREAM);
-		builder.setBolt("RES_API_BOLT1", restApiBolt, NUM_TASKS).setNumTasks(NUM_TASKS).shuffleGrouping(PERSISTANCE_BOLT,"REST_STREAM");
-		builder.setBolt("RES_API_BOLT2", restApiBolt, NUM_TASKS).setNumTasks(NUM_TASKS).shuffleGrouping("INSERT_BOLT","REST_STREAM");
+		builder.setBolt("CONTROL2",  new ControlKpiBolt(_dataSourceTName), NUM_TASKS).setNumTasks(Integer.parseInt(numTaskMap.get("CONTROL2").toString())).shuffleGrouping(LOGIC_BOLT,"CONTROL_STREAM");
+		builder.setBolt("UPDATE_BOLT", customUpdateKpiBolt, NUM_TASKS).setNumTasks(Integer.parseInt(numTaskMap.get("UPDATE_BOLT").toString())).shuffleGrouping(LOGIC_BOLT,UPDATE_STREAM);
+		builder.setBolt("INSERT_BOLT", customInsertKpiBolt, NUM_TASKS).setNumTasks(Integer.parseInt(numTaskMap.get("INSERT_BOLT").toString())).shuffleGrouping(LOGIC_BOLT,INSERT_STREAM);
+		builder.setBolt("RES_API_BOLT1", restApiBolt, NUM_TASKS).setNumTasks(Integer.parseInt(numTaskMap.get("RES_API_BOLT1").toString())).shuffleGrouping(PERSISTANCE_BOLT,"REST_STREAM");
+		builder.setBolt("RES_API_BOLT2", restApiBolt, NUM_TASKS).setNumTasks(Integer.parseInt(numTaskMap.get("RES_API_BOLT2").toString())).shuffleGrouping("INSERT_BOLT","REST_STREAM");
 		
 		return builder.createTopology();
 	}
 
+	protected void executePreExecutions(Document spout , MongoDBClient mongoDBClient) {
+		
+		Boolean _initializeScripts = (Boolean) spout.get(Constant.Fields.INITIALIZE_SCRIPT);
 
+		if (_initializeScripts) {
+			
+			Map<String, Object> setupSqls = (Map<String, Object>) spout.get("preExecutions");
+
+			Object[] setupSqlsObj = setupSqls.values().toArray();
+			
+			ConnectionProvider connectionProvider  = ((HikariCPConnectionSingletonSource)ConnectionManager.
+					getHikariCPConnectionProvider(spout.get(Constant.Fields.DATASOURCE_T_NAME).toString())).getInstance();
+			connectionProvider.prepare();
+			
+			JdbcClient jdbcClientTmp =  new JdbcClientExt(connectionProvider, Integer.parseInt(stormConf.get(Config.TOPOLOGY_MESSAGE_TIMEOUT_SECS).toString()));
+			
+			for (Object sql : setupSqlsObj) {
+					jdbcClientTmp.executeSql((String) sql);
+			}
+
+			//////////////////////////////////////////////////////////////////
+			// Updating state _iniatialize to False. Only the first time that to run
+			////////////////////////////////////////////////////////////////// Topology.
+
+			Bson filter = Filters.eq("streamId", (String) spout.get("streamId"));
+			Document spoutUpdate = mongoDBClient.find(filter, "spout");
+			spoutUpdate.put(Constant.Fields.INITIALIZE_SCRIPT, false);
+			mongoDBClient.update(filter, spoutUpdate, true, false);
+			
+			jdbcClientTmp =  null;
+		}
+		
+	}
+	
+	protected Map getPropertiesConnection( MongoDBClient mongoDBClient) {
+		
+		String _connectionType = "sql";
+		Bson filter = Filters.eq("connectionType", _connectionType);
+		List<Document> communications = mongoDBClient.findDocuments(filter, "communication");
+		Assertions.assertThat(communications.size()).isGreaterThan(0);
+		
+		List<Map<String, Object>> 	dataSourcesListMap 				= 	new ArrayList<Map<String, Object>>();
+		Document communication = null;
+		for (int i = 0; i < communications.size(); i++) {
+			communication	=	communications.get(i);
+			Map<String, Object> map	=	Maps.newHashMap();
+			map.putAll((Map) communication.get(Constant.Fields.SETTING));
+			map.put("dataSource."+Constant.Fields.URL, map.get(Constant.Fields.URL));
+			map.remove(Constant.Fields.URL);
+			map.put("dataSource."+Constant.Fields.USER, map.get(Constant.Fields.USER));
+			map.remove(Constant.Fields.USER);
+			map.put("dataSource."+Constant.Fields.PASSWORD, map.get(Constant.Fields.PASSWORD));
+			map.remove(Constant.Fields.PASSWORD);
+			
+			if ( communication.get(Constant.Fields.MAXIMUM_POOL_SIZE)!=null && !communication.get(Constant.Fields.MAXIMUM_POOL_SIZE).toString().isEmpty() ) {
+				map.put(Constant.Fields.MAXIMUM_POOL_SIZE, communication.get(Constant.Fields.MAXIMUM_POOL_SIZE));
+			}
+			if ( communication.get(Constant.Fields.MINIMUMIDLE)!=null && !communication.get(Constant.Fields.MINIMUMIDLE).toString().isEmpty() ) {
+				map.put(Constant.Fields.MINIMUMIDLE, communication.get(Constant.Fields.MINIMUMIDLE));
+			}
+			map.put("registerMbeans", Boolean.TRUE);
+			map.put("poolName", communication.get(Constant.Fields.DATASOURCE_NAME));
+			map.remove(Constant.Fields.DATASOURCE_NAME);
+			dataSourcesListMap.add(map);
+		}
+		
+		Map<String, Object> map = Maps.newHashMap();
+		map.put(Constant.Fields.DATASOURCES, dataSourcesListMap);
+		return map;
+	}
+	
 }

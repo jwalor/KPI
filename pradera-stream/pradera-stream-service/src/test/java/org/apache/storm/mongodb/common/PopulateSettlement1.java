@@ -34,10 +34,32 @@ public class PopulateSettlement1 extends PopulateCollection {
 	
 		topologyMap.put(Constant.Fields.NAME, _topologyName);
 		List streamIdList = new ArrayList<>();
-		streamIdList.add("settlementStream");
-		streamIdList.add("settlement1Stream");
-		topologyMap.put("setStreamIds", streamIdList);
+		streamIdList.add("TB_GRAFICOS");
+		streamIdList.add("TB_GRAFICOS2");
+		topologyMap.put("streamIds", streamIdList);
 		topologyMap.put("status","ACTIVE");
+		
+		Map numTask = new HashMap<String, Integer>();
+		numTask.put("USER_SPOUT",1);
+		numTask.put("LOOKUP_BOLT", 10);
+		numTask.put("CONTROL1", 10);
+		numTask.put("PERSISTANCE_BOLT", 10);
+		numTask.put("LOGIC_BOLT", 10);
+		numTask.put("CONTROL2", 10);
+		numTask.put("UPDATE_BOLT", 10);
+		numTask.put("INSERT_BOLT", 10);
+		numTask.put("RES_API_BOLT1", 10);
+		numTask.put("RES_API_BOLT2", 10);
+		topologyMap.put("numTask", numTask);
+		
+		Map hazelCast = new HashMap<String, Integer>();
+		hazelCast.put("username", "dev");
+		hazelCast.put("credential", "dev-pass");
+		topologyMap.put("hazelCast", hazelCast);
+		
+		topologyMap.put(Constant.Fields.DATASOURCE_NAME, "dbWari");
+		topologyMap.put(Constant.Fields.DATASOURCE_T_NAME, "dbKpi");
+
 		Document documentTopology = new Document(topologyMap );
 		
 		mongoDBClient.insert(documentTopology , "topology");
@@ -59,6 +81,7 @@ public class PopulateSettlement1 extends PopulateCollection {
 		spoutProcess.put(Constant.Fields.SCRIPT , scriptQuerieSpout);
 		spoutProcess.put(Constant.Fields.SCRIPT_TYPE , Constant.Fields.SQL);
 		spoutProcess.put(Constant.Fields.TIME , 5000L);
+		spoutProcess.put(Constant.Fields.TIMEOUTSEC, Integer.parseInt("30"));
 		spoutProcess.put(Constant.Fields.DATASOURCE_NAME, "dbWari");
 		
 		Document documentSpout = new Document(spoutProcess);
@@ -80,11 +103,11 @@ public class PopulateSettlement1 extends PopulateCollection {
 		preExecutionsMap.put(Constant.Fields.SCRIPT+4, script4);
 		String script5 = this.getScript(folder + beforeFolder + "script5.sql");
 		preExecutionsMap.put(Constant.Fields.SCRIPT+5, script5);
-		preExecutionsMap.put(Constant.Fields.DATASOURCE_NAME, "dbKpi");
-
+		
+		documentSpout.put(Constant.Fields.DATASOURCE_T_NAME, "dbKpi");
 		documentSpout.put("preExecutions", preExecutionsMap);
 		documentSpout.put(Constant.Fields.INITIALIZE_SCRIPT, false);
-		documentSpout.put("streamId", "settlementStream");
+		documentSpout.put("streamId", "TB_GRAFICOS");
 		
 		mongoDBClient.insert(documentSpout , "spout");
 		
@@ -122,7 +145,8 @@ public class PopulateSettlement1 extends PopulateCollection {
 		comparatorProcess.put("outputFields", getFieldsComparator());
 		comparatorProcess.put("paramsColumns", getParametersComparator());
 		comparatorProcess.put("columnFieldsMap", getColumnFieldsComparator());
-		comparatorProcess.put("streamName", "settlementStream");
+		comparatorProcess.put("streamName", "TB_GRAFICOS");
+		comparatorProcess.put(Constant.Fields.DATASOURCE_NAME, "dbKpi");
 		
 		List streamList = new ArrayList<>();
 		streamList.add(comparatorProcess);
@@ -146,7 +170,7 @@ public class PopulateSettlement1 extends PopulateCollection {
 		int i=0;
 		executors.put("executor"+i++, executor);
 		logicProcess.put("executors", executors);
-		logicProcess.put("streamName", "settlementStream");
+		logicProcess.put("streamName", "TB_GRAFICOS");
 		
 		streamList = new ArrayList<>();
 		streamList.add(logicProcess);
@@ -164,7 +188,8 @@ public class PopulateSettlement1 extends PopulateCollection {
 		insertNativeProcess.put(Constant.Fields.SCRIPT , scriptQuerieNative);
 		insertNativeProcess.put(Constant.Fields.SCRIPT_TYPE , Constant.Fields.SQL);
 		insertNativeProcess.put("columnFieldsMap", getColumnFieldNativesMapp());
-		insertNativeProcess.put("streamName", "settlementStream");
+		insertNativeProcess.put("streamName", "TB_GRAFICOS");
+		insertNativeProcess.put(Constant.Fields.DATASOURCE_NAME, "dbKpi");
 		
 		Map<String, Object> insertNativeMaps = new HashMap<String, Object>();
 		streamList = new ArrayList<>();
@@ -186,7 +211,9 @@ public class PopulateSettlement1 extends PopulateCollection {
 		int j=0;
 		insertExecutors.put("executor"+j++, insertExecutor);
 		insertProcess.put("executors", insertExecutors);
-		insertProcess.put("streamName", "settlementStream");
+		insertProcess.put("streamName", "TB_GRAFICOS");
+		insertProcess.put(Constant.Fields.DATASOURCE_NAME, "dbKpi");
+
 		
 		streamList = new ArrayList<>();
 		streamList.add(insertProcess);
@@ -208,8 +235,9 @@ public class PopulateSettlement1 extends PopulateCollection {
 		int k=0;
 		updateExecutors.put("executor"+k++, updateExecutor);
 		updateProcess.put("executors", updateExecutors);
-		updateProcess.put("streamName", "settlementStream");
-		
+		updateProcess.put("streamName", "TB_GRAFICOS");
+		updateProcess.put(Constant.Fields.DATASOURCE_NAME, "dbKpi");
+
 		streamList = new ArrayList<>();
 		streamList.add(updateProcess);
 		
@@ -237,6 +265,11 @@ public class PopulateSettlement1 extends PopulateCollection {
 		communication1.put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
 		communication1.put("Accept-Language", "en-US,en;q=0.5");
 		communication1.put("Content-Type", "application/json");
+		
+		Map body = new HashMap<String, String>();
+		body.put("tableTarget", "value1");
+		body.put("streamId", "value2");
+		communication1.put("body",body);
 		writerExecutor.put(Constant.Fields.SETTING, communication1);
 		
 		int l=0;
@@ -267,203 +300,6 @@ public class PopulateSettlement1 extends PopulateCollection {
 		
 	}
 	
-	
-	@Test
-	public void createExecutions() throws IOException  {
-		
-		MongoDBClient mongoDBClient = new MongoDBClient(null,null,"storm_config2","localhost",27017);
-		
-		String folder	="settlement1/";
-		String raw		="settlement1";
-		
-		String _topologyName = "settlement1Topology";
-		String _table = "SETTLEMENT";
-		
-		
-		/**
-		 *  Delete executions 
-//		 */
-		Bson filter = null;
-		
-		// started
-		Map<String, Object> spoutProcess = new HashMap<String, Object>();
-		spoutProcess.put(Constant.Fields.NAME , Constant.StormComponent.JDBC_SPOUT);		
-		String scriptQuerieSpout = this.getScript( folder + raw + "SpoutReader.sql"); 
-		spoutProcess.put(Constant.Fields.SCRIPT , scriptQuerieSpout);
-		spoutProcess.put(Constant.Fields.SCRIPT_TYPE , Constant.Fields.SQL);
-		spoutProcess.put(Constant.Fields.TIME , 5000L);
-		Document documentSpout = new Document(spoutProcess);
-		
-		/////////////////////////////////////////////////////////////////////////////////////////////////////
-		
-		Map<String, Object> comparatorProcess = new HashMap<String, Object>();
-		comparatorProcess.put(Constant.Fields.NAME , Constant.StormComponent.COMPARATOR_BOLT);		
-		String scriptComparator = this.getScript(folder + raw + "ComparatorReader.sql"); 
-		comparatorProcess.put(Constant.Fields.SCRIPT , scriptComparator);
-		comparatorProcess.put(Constant.Fields.SCRIPT_TYPE , Constant.Fields.SQL);
-		Document documentComparator = new Document(comparatorProcess);
-		
-        /////////////////////////////////////////////////////////////////////////////////////////////////////
-		
-		Map<String, Object> logicProcess = new HashMap<String, Object>();
-		logicProcess.put(Constant.Fields.NAME , Constant.StormComponent.LOGIC_BOLT);		
-		
-		Map<String, Object> executors = new HashMap<String, Object>();
-		
-		Map<String, Object> executor = new HashMap<String, Object>();
-		String scriptLogic = this.getScript(folder + raw + "LogicBolt.js"); 
-		executor.put(Constant.OPERATION_TYPE , Constant.OPERATION_TYPE_TRANSFORMER );
-		executor.put(Constant.IMPLEMENTATION_TYPE , Constant.IMPLEMENTATION_TRANSFORMER_TYPE_JAVASCRIPT );
-		
-		executor.put(Constant.Fields.SCRIPT , scriptLogic);
-		executor.put(Constant.Fields.SCRIPT_TYPE , Constant.IMPLEMENTATION_TRANSFORMER_TYPE_JAVASCRIPT );
-		int i=0;
-		executors.put("executor"+i++, executor);
-		
-		logicProcess.put("executors", executors);
-		Document documentLogic = new Document(logicProcess);
-		
-        /////////////////////////////////////////////////////////////////////////////////////////////////////
-		
-		
-		Map<String, Object> insertNativeProcess = new HashMap<String, Object>();
-		insertNativeProcess.put(Constant.Fields.NAME , Constant.StormComponent.INSERT_NATIVE_BOLT);	
-		String scriptQuerieNative = this.getScript( folder + raw + "InsertNativeBolt.sql"); 
-		insertNativeProcess.put(Constant.Fields.SCRIPT , scriptQuerieNative);
-		insertNativeProcess.put(Constant.Fields.SCRIPT_TYPE , Constant.Fields.SQL);
-		
-		/** Seteo de fields y parametros del Spout**/
-		insertNativeProcess.put("columnFieldsMapp", getColumnFieldNativesMapp());
-		Document documentInsertNative = new Document(insertNativeProcess);
-		
-        /////////////////////////////////////////////////////////////////////////////////////////////////////
-
-		Map<String, Object> insertProcess = new HashMap<String, Object>();
-		insertProcess.put(Constant.Fields.NAME , Constant.StormComponent.INSERT_CUSTOM_BOLT);	
-		
-		Map<String, Object> insertExecutors = new HashMap<String, Object>();
-		Map<String, Object> insertExecutor = new HashMap<String, Object>();
-		String insertScript = this.getScript(folder + raw + "InsertBolt.sql"); 
-		insertExecutor.put(Constant.Fields.SCRIPT , insertScript);
-		insertExecutor.put(Constant.Fields.SCRIPT_TYPE , Constant.Fields.SQL);
-		int j=0;
-		insertExecutors.put("executor"+j++, insertExecutor);
-		insertProcess.put("executors", insertExecutors);
-		Document documentInsert = new Document(insertProcess);
-		
-		
-		 /////////////////////////////////////////////////////////////////////////////////////////////////////
-		Map<String, Object> updateProcess = new HashMap<String, Object>();
-		updateProcess.put(Constant.Fields.NAME , Constant.StormComponent.UPDATE_CUSTOM_BOLT);		
-	
-		Map<String, Object> updateExecutors = new HashMap<String, Object>();
-		Map<String, Object> updateExecutor = new HashMap<String, Object>();
-		String updateScript = this.getScript(folder + raw + "UpdateBolt.sql"); 
-		updateExecutor.put(Constant.Fields.SCRIPT , updateScript);
-		updateExecutor.put(Constant.Fields.SCRIPT_TYPE , Constant.Fields.SQL);
-		int k=0;
-		updateExecutors.put("executor"+k++, updateExecutor);
-		updateProcess.put("executors", updateExecutors);
-		Document documentUpdate = new Document(updateProcess);
-		
-		/////////////////////////////////////////////////////////////////////////////////////////////////////
-		
-		Map<String, Object> writerProcess = new HashMap<String, Object>();
-		writerProcess.put(Constant.Fields.NAME , Constant.StormComponent.WRITER_BOLT);
-		
-		Map<String, Object> writerExecutors = new HashMap<String, Object>();
-		Map<String, Object> writerExecutor = new HashMap<String, Object>();
-		writerExecutor.put(Constant.OPERATION_TYPE , Constant.OPERATION_TYPE_WRITER );
-		writerExecutor.put(Constant.IMPLEMENTATION_TYPE , Constant.IMPLEMENTATION_WRITER_TYPE_WS);
-		
-		/**
-		 *  parametros de conexion donde va a escribir
-		 */
-		Map communication1 = new HashMap<String, String>();		
-		communication1.put(Constant.Fields.URL, "http://localhost:8080");
-		communication1.put("uri", "/process/streaming/");
-		communication1.put("method", "post");
-		communication1.put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
-		communication1.put("Accept-Language", "en-US,en;q=0.5");
-		communication1.put("Content-Type", "application/json");
-		writerExecutor.put(Constant.Fields.SETTING, communication1);
-		
-		int l=0;
-		writerExecutors.put("executor"+l++, writerExecutor);
-		writerProcess.put("executors", writerExecutors);
-		Document documentWriter = new Document(writerProcess);
-		
-		/////////////////////////////////////////////////////////////////////////////////////////////////////
-		
-		
-		/** Seteo de fields y parametros del Spout**/
-		documentSpout.put("fields", getFieldsSpout());
-		documentSpout.put("parameters", getParametersSpout()); // Could have nothing value.
-		mongoDBClient.insert(documentSpout , "process");
-		
-		/** Seteo de fields y parametros del ComparatorBolt**/
-		documentComparator.put("outputFields", getFieldsComparator());
-		documentComparator.put("paramsColumns", getParametersComparator());
-		documentComparator.put("columnFieldsMap", getColumnFieldsComparator());
-		
-		mongoDBClient.insert(documentComparator , "process");
-		mongoDBClient.insert(documentLogic , "process");
-		mongoDBClient.insert(documentInsertNative , "process");
-		mongoDBClient.insert(documentInsert , "process");
-		mongoDBClient.insert(documentUpdate , "process");
-		mongoDBClient.insert(documentWriter , "process");		
-		
-		////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-		List<DBRef> processes = new ArrayList<DBRef>();
-		processes.add(new DBRef("process", (ObjectId) documentSpout.get("_id")));
-		processes.add(new DBRef("process", (ObjectId) documentComparator.get("_id")));
-		processes.add(new DBRef("process", (ObjectId) documentInsertNative.get("_id")));
-		processes.add(new DBRef("process", (ObjectId) documentLogic.get("_id")));
-		processes.add(new DBRef("process", (ObjectId) documentInsert.get("_id")));
-		processes.add(new DBRef("process", (ObjectId) documentUpdate.get("_id")));
-		processes.add(new DBRef("process", (ObjectId) documentWriter.get("_id")));
-		////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-		
-		List<DBRef> communications = new ArrayList<DBRef>();
-		filter = Filters.eq("origin", "source");
-		Document source	=	mongoDBClient.find(filter, "communication");
-		communications.add(new DBRef("communication", (ObjectId) source.get("_id")));
-		
-		filter = Filters.eq("origin", "target");
-		Document target	=	mongoDBClient.find(filter, "communication");
-		communications.add(new DBRef("communication", (ObjectId) target.get("_id")));
-		
-		Map<String, Object> topologyMap = new HashMap<String, Object>();
-		
-		topologyMap.put(Constant.Fields.NAME, _topologyName);
-		topologyMap.put(Constant.Fields.TABLE_TARGET, _table);
-		topologyMap.put(Constant.Fields.PROCESSES, processes);
-		topologyMap.put(Constant.Fields.COMMUNICATIONS, communications);
-		topologyMap.put(Constant.Fields.COMMUNICATIONS, communications);
-		topologyMap.put(Constant.Fields.PROCESS_EXECUTING, false);
-		topologyMap.put(Constant.Fields.INITIALIZE_SCRIPT, false);
-		
-		
-		Map<String, Object> preExecutionsMap = new HashMap<String, Object>();
-		
-		String beforeFolder = "before/";
-		String script1 = this.getScript(folder + beforeFolder + "script1.sql");
-		preExecutionsMap.put(Constant.Fields.SCRIPT+1, script1 );		
-		String script2 = this.getScript(folder + beforeFolder + "script2.sql");
-		preExecutionsMap.put(Constant.Fields.SCRIPT+2, script2);
-		String script3 = this.getScript(folder + beforeFolder + "script3.sql");
-		preExecutionsMap.put(Constant.Fields.SCRIPT+3, script3);
-		String script4 = this.getScript(folder + beforeFolder + "script4.sql");
-		preExecutionsMap.put(Constant.Fields.SCRIPT+4, script4);
-		String script5 = this.getScript(folder + beforeFolder + "script5.sql");
-		preExecutionsMap.put(Constant.Fields.SCRIPT+5, script5);
-		topologyMap.put("preExecutions", preExecutionsMap);
-		
-		Document documentTopology = new Document(topologyMap );
-		mongoDBClient.insert(documentTopology , "topology");
-
-	}
 	
 	
 	protected List<Map> getFieldsSpout() {
@@ -685,4 +521,10 @@ public class PopulateSettlement1 extends PopulateCollection {
 			}};
 			
 		}
+
+	@Override
+	public void createExecutions() throws IOException {
+		// TODO Auto-generated method stub
+		
+	}
 }

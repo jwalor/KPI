@@ -14,10 +14,9 @@ config:
   HOST: localhost
   PORT: 27017
   name: "settlementTopology"
+  HAZELCAST.USER: dev
+  HAZELCAST.PASSWORD: dev-pass
 topologySource:
   className: "org.apache.storm.topologies.FixedKpiTopology"
- # constructorArgs:
- #   - "foo"
- #   - "bar"
 
 

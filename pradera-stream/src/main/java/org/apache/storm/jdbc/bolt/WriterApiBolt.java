@@ -1,5 +1,6 @@
 package org.apache.storm.jdbc.bolt;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -25,6 +26,7 @@ import com.mongodb.client.model.Filters;
 import com.pradera.stream.constant.Constant;
 import com.pradera.stream.model.OperationPayload;
 import com.pradera.stream.service.impl.OperationProcessor;
+import com.pradera.stream.util.JsonUtils;
 
 /**
  * 
@@ -45,24 +47,24 @@ public class WriterApiBolt extends BaseTickTupleAwareRichBolt{
 	@Override
 	public void prepare(Map stormConf, TopologyContext context,
 			OutputCollector collector) {
-		
+
 
 		this.collector = collector;
 		LOG.info("Setting dinamycs  operations  on WriterApiBolt");
-		
+
 		String user 	=  (stormConf.get(Constant.SettingMongo.USER) == null || 
-    			StringUtils.isEmpty(stormConf.get(Constant.SettingMongo.USER).toString()) )	?
-    			null:stormConf.get(Constant.SettingMongo.USER).toString();
+				StringUtils.isEmpty(stormConf.get(Constant.SettingMongo.USER).toString()) )	?
+						null:stormConf.get(Constant.SettingMongo.USER).toString();
 
 		String password = (stormConf.get(Constant.SettingMongo.PASSWORD) == null || 
-    			StringUtils.isEmpty(stormConf.get(Constant.SettingMongo.PASSWORD).toString()) )	?
-    			null:stormConf.get(Constant.SettingMongo.PASSWORD).toString();
-		
+				StringUtils.isEmpty(stormConf.get(Constant.SettingMongo.PASSWORD).toString()) )	?
+						null:stormConf.get(Constant.SettingMongo.PASSWORD).toString();
+
 		String host 	= stormConf.get(Constant.SettingMongo.HOST).toString();
 		int    port 	= Integer.parseInt(stormConf.get(Constant.SettingMongo.PORT).toString());
 		String dbName 		= stormConf.get(Constant.SettingMongo.DB).toString();
 		MongoDBClient mongoDBClient = new MongoDBClient(user,password,dbName,host,port);
-		
+
 		String _setTopologyName = (String) stormConf.get("name");
 		Bson 		filter 			= 	Filters.eq("name", _setTopologyName);
 		Document 	topology		=	mongoDBClient.find(filter, "topology");
@@ -92,10 +94,10 @@ public class WriterApiBolt extends BaseTickTupleAwareRichBolt{
 			for (int i = 0; i < executorArray.length; i++) {
 				Document obj = (Document) executorArray[i];
 				executor = new  HashMap<String , Object>();
-				
+
 				executor.put(Constant.OPERATION_TYPE, obj.get(Constant.OPERATION_TYPE));
 				executor.put(Constant.IMPLEMENTATION_TYPE, obj.get(Constant.IMPLEMENTATION_TYPE));
-				
+
 				if ( obj.get("setting") instanceof Document) {
 
 					Document settingDoc =(Document)obj.get("setting");
@@ -107,8 +109,12 @@ public class WriterApiBolt extends BaseTickTupleAwareRichBolt{
 					executor.put("method", settingDoc.get("method"));
 					executor.put("client", HttpClientBuilder.create().build());
 					executor.put("post", post);
-					executor.put(Constant.Fields.TABLE_TARGET , topology.get(Constant.Fields.TABLE_TARGET));
-
+					try {
+						executor.put("body",JsonUtils.jsonToMap(((Document)settingDoc.get("body")).toJson()));
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				}
 
 				configOperations.add(executor);
@@ -129,18 +135,22 @@ public class WriterApiBolt extends BaseTickTupleAwareRichBolt{
 
 			LOG.info("----> Woking!!!!!!!");
 
+			String _streamId = (String) tuple.getValueByField("streamId");
 			OperationPayload operationPayload = (OperationPayload) tuple.getValueByField("PAYLOAD");
-			
+
 			for (Map configOperationMap : configOperations) {
-				
+
 				String operationType		=	""+configOperationMap.get(Constant.OPERATION_TYPE);
 				String implementationType	=	""+configOperationMap.get(Constant.IMPLEMENTATION_TYPE);
 				configOperationMap.put(Constant.OPERATION_TYPE, operationType);
 				configOperationMap.put(Constant.IMPLEMENTATION_TYPE, implementationType);
-				
+
+				Map mapEntity = (Map) configOperationMap.get("body");
+				mapEntity.put("streamId", _streamId);
+				mapEntity.put("tableTarget", _streamId);
 				operationPayload.setConfigOperationCurrent(configOperationMap);
 				OperationProcessor.process(operationPayload);
-				
+
 			}
 
 			LOG.info("----> Final time :" + System.currentTimeMillis());

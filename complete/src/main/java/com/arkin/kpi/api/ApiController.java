@@ -51,6 +51,10 @@ public class ApiController {
 		try {
 			
 			Map      mapEntity	 = JsonUtils.jsonToMap((String)input);
+			
+			if ( mapEntity.get("streamId") == null ||  mapEntity.get("tableTarget") == null) {
+				throw new Exception();
+			}
 			String  _streamId	 = (String) mapEntity.get("streamId");
 			EventImp evt = new EventImp(mapEntity ,_streamId, ConstantWorker.CREATE_WORKER.getValue());
 			
