@@ -83,8 +83,8 @@ public class ControlKpiBolt extends BaseTickTupleAwareRichBolt{
 
 		StringBuilder _sb3 = new StringBuilder();
 		_sb3.append(" update STREAM_UPDATE SET COUNT_RECORD = :COUNT_RECORD , END_HOUR = :END_HOUR ,STATUS = :FINAL_STATUS ");
-		_sb3.append(" WHERE STREAM_UPDATE_NAME = :STREAM_NAME AND STATUS = :STATUS" );
-		_sb3.append(" AND ID_STREAM_UPDATE_PK = ( SELECT ID_STREAM_UPDATE_PK FROM STREAM_UPDATE ORDER BY START_HOUR DESC LIMIT 1 ) " );
+		_sb3.append(" WHERE   STATUS = :STATUS AND ID_STREAM_UPDATE_PK = " );
+		_sb3.append("  ( SELECT ID_STREAM_UPDATE_PK FROM STREAM_UPDATE WHERE STREAM_UPDATE_NAME = :STREAM_NAME ORDER BY START_HOUR DESC LIMIT 1 ) " );
 		_sb3.append(" AND to_char(REGISTER_DATE , 'YYYY-MM-DD') = :CURRENT_DATE  ");
 		_updateControl = _sb3.toString();
 

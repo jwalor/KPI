@@ -159,27 +159,21 @@ public class KpiComparatorBolt extends JdbcLookupBolt{
 			if (result != null && result.size() != 0) {
 				for (List<Column> row : result) {
 					LOG.debug("Sending message to LogicBolt");	
-
 					header = ((KpiJdbcLookupMapper)jdbcLookupMapper).convertTupleToMap(_tuple);
 					header.put("NATIVE", Boolean.FALSE);
 					payLoad.setHeader(header);
 					payLoad.setPayload(((KpiJdbcLookupMapper)jdbcLookupMapper).convertColumnsToMap(row));
-
 					collector.emit(LOGIC_STREAM,tuple, new Values(_streamId,payLoad));
 				}
 			}
 			else{
-
 				LOG.debug("Sending message to InsertNativeBolt");
-
 				Map<String,Object> 	body = new HashMap<String,Object>();
 				body.put("TUPLE", _tuple);
 				payLoad.setPayload(body);
-
-				collector.emit(NATIVE_STREAM,tuple,new Values(_streamId,payLoad));
 				collector.emit("CONTROL_STREAM",tuple,new Values(_streamId,payLoad));
+				collector.emit(NATIVE_STREAM,tuple,new Values(_streamId,payLoad));
 			}
-
 			this.collector.ack(tuple);
 		} catch (Exception e) {
 			this.collector.reportError(e);
