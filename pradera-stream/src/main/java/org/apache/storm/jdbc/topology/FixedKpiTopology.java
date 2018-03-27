@@ -75,12 +75,14 @@ public class FixedKpiTopology  implements TopologySource {
 
 		this.stormConf = setting;
 		String _setTopologyName = (String) setting.get("name");
-
+		
+		String user 	= setting.get(Constant.SettingMongo.USER).toString();
+		String password = setting.get(Constant.SettingMongo.PASSWORD).toString();
 		String host 	= setting.get(Constant.SettingMongo.HOST).toString();
 		int    port 	= Integer.parseInt(setting.get(Constant.SettingMongo.PORT).toString());
 		String dbName 		= setting.get(Constant.SettingMongo.DB).toString();
 
-		MongoDBClient mongoDBClient = new MongoDBClient(null,null,dbName,host,port);
+		MongoDBClient mongoDBClient = new MongoDBClient(user,password,dbName,host,port);
 		Bson 		filter 		= 	Filters.eq("name", _setTopologyName);
 		Document 	topology	=	mongoDBClient.find(filter, "topology");
 		Validate.notNull(topology, "The topology  "+ _setTopologyName + " must not be null");
