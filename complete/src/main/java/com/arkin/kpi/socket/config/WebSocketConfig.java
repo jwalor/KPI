@@ -72,16 +72,19 @@ public class WebSocketConfig extends AbstractSessionWebSocketMessageBrokerConfig
 
 	@Override
 	public void configureMessageBroker(MessageBrokerRegistry config) {
-		config.enableStompBrokerRelay("/queue", "/topic");
-		config.setApplicationDestinationPrefixes("/app");
 		config.setUserDestinationPrefix("/user");
+		config
+	      .setApplicationDestinationPrefixes("/app")
+	      .enableStompBrokerRelay("/queue", "/topic")
+	      .setRelayHost(env.getProperty("server.host.message.broker"))
+	      .setRelayPort(Integer.parseInt(env.getProperty("server.port.message.broker")))
+	      .setClientLogin(env.getProperty("server.user.message.broker"))
+	      .setClientPasscode(env.getProperty("server.pass.message.broker"));
 	}
 
 	@Override
 	public void configureStompEndpoints(StompEndpointRegistry registry) {
 
-		StringBuilder _sbUrl = new StringBuilder();
-		_sbUrl.append("http://").append(env.getProperty("server.url")).append(":").append(env.getProperty("server.port"));
 		registry.addEndpoint("/gs-guide-websocket").setAllowedOrigins("*")
 				.addInterceptors(new LoggerHandshakeInterceptor());
 

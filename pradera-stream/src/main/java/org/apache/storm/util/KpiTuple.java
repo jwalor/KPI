@@ -2,7 +2,6 @@ package org.apache.storm.util;
 
 import java.util.List;
 
-import org.apache.storm.task.GeneralTopologyContext;
 import org.apache.storm.tuple.Fields;
 
 /**
