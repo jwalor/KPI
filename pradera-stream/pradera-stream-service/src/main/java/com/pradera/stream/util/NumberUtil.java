@@ -24,10 +24,16 @@ public class NumberUtil extends NumberUtils {
 	 * @param precision
 	 * @return
 	 */
-	public static BigDecimal roundBigDecimal(BigDecimal number, int precision) {
-		if (number == null)
-			return number;
-		return number.setScale(precision, RoundingMode.HALF_UP);
+	public static BigDecimal roundBigDecimal(Object number, int precision) {
+		if (number == null)return null;
+		
+		BigDecimal _number = null;
+		if (number instanceof Long) {
+			_number = new BigDecimal(number.toString());
+		}else {
+			_number = (BigDecimal) number;
+		}
+		return _number.setScale(precision, RoundingMode.HALF_UP);
 	}
 	
 	/**
