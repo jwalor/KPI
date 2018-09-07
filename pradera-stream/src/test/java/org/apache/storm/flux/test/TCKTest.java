@@ -9,7 +9,19 @@ import org.apache.storm.flux.model.TopologyDef;
 import org.apache.storm.flux.parser.FluxParser;
 import org.junit.Test;
 
+import com.google.common.collect.Maps;
+import com.pradera.stream.constant.Constant;
+import com.pradera.stream.singleton.HikariCPConnectionSingletonSource;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+
 import static org.junit.Assert.*;
+
+import java.sql.Connection;
+import java.util.Map;
+import java.util.Properties;
+
+import javax.sql.DataSource;
 
 /**
  * 
@@ -37,6 +49,43 @@ public class TCKTest {
         assertNotNull(topology);
         topology.validate();
     }
+    
+    
+    @Test
+    public void tesNewHikari() throws Exception{
+    	HikariCPConnectionSingletonSource hikariCPConnectionSingletonSource = null;
+		
+    	Map<String, Object> map	=	Maps.newHashMap();
+		map.put("dataSource."+Constant.Fields.URL, "jdbc:postgresql://localhost:5432/postgres");
+		map.put("dataSource."+Constant.Fields.USER,"postgres");
+		map.put("dataSource."+Constant.Fields.PASSWORD,"@dmin123");
+//		map.put(Constant.Fields.MAXIMUM_POOL_SIZE, 10);
+//		map.put(Constant.Fields.MINIMUMIDLE, 1);
+		map.put("dataSourceClassName", "org.postgresql.ds.PGSimpleDataSource");
+
+		//map.put("registerMbeans", Boolean.TRUE);
+		map.put("poolName", "KPIPool");
+    	
+//		DataSource dataSource=null;
+//		if(dataSource == null) {
+//            Properties properties = new Properties();
+//            properties.putAll(map);
+//            HikariConfig config = new HikariConfig(properties);
+//            
+//            dataSource = new HikariDataSource(config);
+//            ((HikariConfig) dataSource).setAutoCommit(false);
+//        }
+//		
+		try {
+
+	    	hikariCPConnectionSingletonSource = new HikariCPConnectionSingletonSource(map , "dbPostgres");
+	    	hikariCPConnectionSingletonSource.prepare();
+	    	Connection _connection = hikariCPConnectionSingletonSource.getConnection();
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
+    }
+    
 
     @Test(expected = IllegalArgumentException.class)
     public void testBadShellComponents() throws Exception {

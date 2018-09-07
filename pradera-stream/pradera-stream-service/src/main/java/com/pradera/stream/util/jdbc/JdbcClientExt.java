@@ -114,6 +114,11 @@ public class JdbcClientExt extends JdbcClient {
 			if ( !schema.isEmpty()) {
 				connection.setSchema(schema);
 			}
+			
+			if (LOG.isDebugEnabled()) {
+				LOG.debug("Executing query : " + sqlQuery );
+			}
+			
 			NamedParameterStatement namedParameterStatement	= new NamedParameterStatement(connection, sqlQuery);
 
 			if(queryTimeoutSecs > 0) {
