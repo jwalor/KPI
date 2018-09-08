@@ -1,5 +1,6 @@
 package com.pradera.stream.util.jdbc;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -221,6 +222,28 @@ public class NamedParameterStatement {
         }
     }
 
+
+    /**
+     * Sets a parameter.
+     *
+     * @param name parameter name
+     * @param value parameter value
+     * @throws SQLException if an error occurred
+     * @throws IllegalArgumentException if the parameter does not exist
+     * @see PreparedStatement#setInt(int, int)
+     */
+    public void setBigDecimal(String name, BigDecimal value) throws SQLException {
+        int[] indexes = getIndexes(name);
+        
+        if ( indexes == null) {
+        	return;
+        }
+        
+        for (int i = 0; i < indexes.length; i++) {
+            statement.setBigDecimal(indexes[i], value);
+        }
+    }
+    
     /**
      * Sets a parameter.
      *

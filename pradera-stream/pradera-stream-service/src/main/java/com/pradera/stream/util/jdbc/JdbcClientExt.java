@@ -1,5 +1,6 @@
 package com.pradera.stream.util.jdbc;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.ResultSet;
@@ -21,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Lists;
 import com.pradera.stream.model.CustomColumn;
 import com.pradera.stream.singleton.HikariCPConnectionSingletonSource;
+import com.pradera.stream.util.NumberUtil;
 import com.pradera.stream.util.StringUtil;
 
 /**
@@ -144,6 +146,7 @@ public class JdbcClientExt extends JdbcClient {
 					} else if (columnJavaType.equals(Integer.class)) {
 						row.add(new CustomColumn<Integer>(columnLabel, resultSet.getInt(columnLabel), columnType));
 					} else if (columnJavaType.equals(Double.class)) {
+						
 						row.add(new CustomColumn<Double>(columnLabel, resultSet.getDouble(columnLabel), columnType));
 					} else if (columnJavaType.equals(Float.class)) {
 						row.add(new CustomColumn<Float>(columnLabel, resultSet.getFloat(columnLabel), columnType));
@@ -154,7 +157,11 @@ public class JdbcClientExt extends JdbcClient {
 					} else if (columnJavaType.equals(byte[].class)) {
 						row.add(new CustomColumn<byte[]>(columnLabel, resultSet.getBytes(columnLabel), columnType));
 					} else if (columnJavaType.equals(Long.class)) {
-						row.add(new CustomColumn<Long>(columnLabel, resultSet.getLong(columnLabel), columnType));
+						if (NumberUtil.isDecimal(resultSet.getString(columnLabel))) {
+							row.add(new CustomColumn<BigDecimal>(columnLabel, resultSet.getBigDecimal(columnLabel), columnType));
+						}else {
+							row.add(new CustomColumn<Long>(columnLabel, resultSet.getLong(columnLabel), columnType));
+						}
 					} else if (columnJavaType.equals(Date.class)) {
 						row.add(new CustomColumn<Date>(columnLabel, resultSet.getDate(columnLabel), columnType));
 					} else if (columnJavaType.equals(Time.class)) {
@@ -197,7 +204,12 @@ public class JdbcClientExt extends JdbcClient {
 			} else if (columnJavaType.equals(byte[].class)) {
 				namedParameterStatement.setBytes(column.getColumnName(), (byte[]) column.getVal());
 			} else if (columnJavaType.equals(Long.class)) {
-				namedParameterStatement.setLong(column.getColumnName(), (Long) column.getVal());
+				if (NumberUtil.isDecimal(column.getVal().toString())) {
+					namedParameterStatement.setBigDecimal(column.getColumnName(), (BigDecimal) column.getVal());
+				}else {
+					namedParameterStatement.setLong(column.getColumnName(), (Long) column.getVal());
+				}
+				
 			} else if (columnJavaType.equals(Date.class)) {
 				namedParameterStatement.setDate(column.getColumnName(), (Date) column.getVal());
 			} else if (columnJavaType.equals(Time.class)) {

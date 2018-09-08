@@ -1,5 +1,6 @@
 package org.apache.storm.jdbc.mapper;
 
+import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
@@ -19,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.pradera.stream.model.CustomColumn;
+import com.pradera.stream.util.NumberUtil;
 
 /**
  * 
@@ -100,8 +102,13 @@ public class KpiJdbcLookupMapper extends SimpleJdbcLookupMapper implements KpiLo
 					Integer value = tuple.getIntegerByField(columnName);
 					map.put(columnName, new CustomColumn(columnName, value, columnSqlType,  ((CustomColumn)column).getShouldCompare()));
 				} else if(Util.getJavaType(columnSqlType).equals(Long.class)) {
-					Long value = tuple.getLongByField(columnName);
-					map.put(columnName, new CustomColumn(columnName, value, columnSqlType,  ((CustomColumn)column).getShouldCompare()));
+					if (NumberUtil.isDecimal(tuple.getValueByField(columnName).toString())) {
+	            		BigDecimal value = NumberUtil.toBigDecimal(tuple.getValueByField(columnName));
+	            		map.put(columnName, new CustomColumn(columnName, value, columnSqlType,  ((CustomColumn)column).getShouldCompare()));
+					}else {
+						Long value = tuple.getLongByField(columnName);
+						map.put(columnName, new CustomColumn(columnName, value, columnSqlType,  ((CustomColumn)column).getShouldCompare()));
+					}
 				} else if(Util.getJavaType(columnSqlType).equals(Double.class)) {
 					Double value = tuple.getDoubleByField(columnName);
 					map.put(columnName, new CustomColumn(columnName, value, columnSqlType,  ((CustomColumn)column).getShouldCompare()));
@@ -152,8 +159,13 @@ public class KpiJdbcLookupMapper extends SimpleJdbcLookupMapper implements KpiLo
                 Integer value = tuple.getIntegerByField(columnName);
                 columns.add(new Column(columnName, value, columnSqlType));
             } else if(Util.getJavaType(columnSqlType).equals(Long.class)) {
-                Long value = tuple.getLongByField(columnName);
-                columns.add(new Column(columnName, value, columnSqlType));
+            	if (NumberUtil.isDecimal(tuple.getValueByField(columnName).toString())) {
+            		BigDecimal value = NumberUtil.toBigDecimal(tuple.getValueByField(columnName));
+					columns.add(new Column(columnName, value, columnSqlType));
+				}else {
+					Long value = tuple.getLongByField(columnName);
+	                columns.add(new Column(columnName, value, columnSqlType));
+				}
             } else if(Util.getJavaType(columnSqlType).equals(Double.class)) {
                 Double value = tuple.getDoubleByField(columnName);
                 columns.add(new Column(columnName, value, columnSqlType));
@@ -198,8 +210,14 @@ public class KpiJdbcLookupMapper extends SimpleJdbcLookupMapper implements KpiLo
                 Integer value = tuple.getIntegerByField(columnName);
                 columns.add(new Column(columnName, value, columnSqlType));
             } else if(Util.getJavaType(columnSqlType).equals(Long.class)) {
-                Long value = tuple.getLongByField(columnName);
-                columns.add(new Column(columnName, value, columnSqlType));
+            	if (NumberUtil.isDecimal(tuple.getValueByField(columnName).toString())) {
+            		BigDecimal value = NumberUtil.toBigDecimal(tuple.getValueByField(columnName));
+					columns.add(new Column(columnName, value, columnSqlType));
+				}else {
+					Long value = tuple.getLongByField(columnName);
+	                columns.add(new Column(columnName, value, columnSqlType));
+				}
+                
             } else if(Util.getJavaType(columnSqlType).equals(Double.class)) {
                 Double value = tuple.getDoubleByField(columnName);
                 columns.add(new Column(columnName, value, columnSqlType));
